@@ -143,8 +143,11 @@ public:
 	void SetShader(int nMaterial, CShader *pShader);
 	void SetMaterial(int nMaterial, CMaterial *pMaterial);
 
+
 	void SetChild(CGameObject* pChild, bool bReferenceUpdate = false);
 	void SetOOBB() { m_xmOOBBTransformed = m_xmOOBB; }
+	void UpdateBoundingBox();
+
 	virtual void BuildMaterials(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList) { }
 	void SetCollider(CGameObject* pCollider) { m_pCollider = pCollider; }
 

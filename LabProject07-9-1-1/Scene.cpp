@@ -70,20 +70,20 @@ void CScene::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *p
 
 	BuildDefaultLightsAndMaterials();
 
-	m_nGameObjects = 64;
+	m_nGameObjects = 1;
 	m_ppGameObjects = new CGameObject*[m_nGameObjects];
 
 	CGameObject *pApacheModel = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/TREE.bin");
 	//pApacheModel->m_pMesh->Set_xmBoundingBox()
 	//pApacheModel->SetOOBB(CMesh);
 	CApacheObject* pApacheObject = NULL;
-	for (int i = 0; i < 60; i++) {
+	for (int i = 0; i < 1; i++) {
 		pApacheObject = new CApacheObject();
 		pApacheObject->SetChild(pApacheModel, true);
 		
 		pApacheObject->OnInitialize();
 		if(i<30)
-		pApacheObject->SetPosition(-100.0f, 0.0f, -200.0f+i*20);
+		pApacheObject->SetPosition(0.0f, 0.0f,-100.0f);
 		
 		else
 		pApacheObject->SetPosition(100.0f, 0.0f, -200.0f + (i-30) * 50);
@@ -93,7 +93,7 @@ void CScene::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *p
 		pApacheObject->SetOOBB();
 		m_ppGameObjects[i] = pApacheObject;
 	}
-	pApacheObject = new CApacheObject();
+	/*pApacheObject = new CApacheObject();
 	pApacheObject->SetChild(pApacheModel, true);
 	pApacheObject->OnInitialize();
 	pApacheObject->SetPosition(-75.0f, 0.0f, 80.0f);
@@ -132,7 +132,7 @@ void CScene::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *p
 	pMi24Object->SetPosition(-95.0f, 0.0f, 50.0f);
 	pMi24Object->SetScale(4.5f, 4.5f, 4.5f);
 	pMi24Object->Rotate(0.0f, -90.0f, 0.0f);
-	m_ppGameObjects[63] = pMi24Object;
+	m_ppGameObjects[63] = pMi24Object;*/
 
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 
@@ -286,15 +286,17 @@ void CScene::AnimateObjects(float fTimeElapsed)
 	m_fElapsedTime = fTimeElapsed;
 
 	for (int i = 0; i < m_nGameObjects; i++) m_ppGameObjects[i]->Animate(fTimeElapsed, NULL);
-
+	m_pPlayer->Animate(fTimeElapsed, NULL);
 	if (m_pLights)
 	{
 		m_pLights[1].m_xmf3Position = m_pPlayer->GetPosition();
 		m_pLights[1].m_xmf3Direction = m_pPlayer->GetLookVector();
-		m_ppGameObjects[0]->SetPositionZ( m_pPlayer->GetPosition().z);
+		//m_ppGameObjects[0]->SetPositionZ( m_pPlayer->GetPosition().z);
 	
 
 	}
+	CheckObjectByWallCollision();
+
 }
 
 void CScene::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera)
@@ -318,5 +320,19 @@ void CScene::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera
 			m_ppGameObjects[i]->Render(pd3dCommandList, pCamera);
 		}
 	}
+}
+
+void CScene::CheckObjectByWallCollision()
+{
+	for (int i = 0; i < m_nGameObjects; i++)
+	{
+		BoundingOrientedBox wmPlayerOOBB = m_pPlayer->m_xmOOBB;
+		ContainmentType containType = m_ppGameObjects[i]->m_xmOOBB.Contains(wmPlayerOOBB);
+		if(m_ppGameObjects[i]->m_xmOOBBTransformed.Intersects(wmPlayerOOBB))
+			m_pPlayer->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
+		//else
+	//_pPlayer->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
+	}
+
 }
 

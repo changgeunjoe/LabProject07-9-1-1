@@ -245,7 +245,8 @@ CAirplanePlayer::CAirplanePlayer(ID3D12Device *pd3dDevice, ID3D12GraphicsCommand
 	pGameObject->Rotate(15.0f, 0.0f, 0.0f);
 	pGameObject->SetScale(8.5f, 8.5f, 8.5f);
 	SetChild(pGameObject, true);
-
+	m_xmOOBB = BoundingOrientedBox(GetPosition(), XMFLOAT3(20.0f, 20.0f, 20.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	SetOOBB();
 	OnInitialize();
 
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
