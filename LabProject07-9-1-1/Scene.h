@@ -72,6 +72,8 @@ public:
 
 	CGameObject					**m_ppGameObjects = NULL;
 	int							m_nGameObjects = 0;
+	CGameObject					**m_ppGameCarObjects = NULL;
+	int							m_nGameCarObjects = 0;
 
 	LIGHT						*m_pLights = NULL;
 	int							m_nLights = 0;

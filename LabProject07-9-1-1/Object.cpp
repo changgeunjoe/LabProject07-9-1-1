@@ -118,9 +118,12 @@ void CGameObject::SetChild(CGameObject* pChild, bool bReferenceUpdate)
 }
 
 void CGameObject::UpdateBoundingBox()
-{
-		m_xmOOBB = BoundingOrientedBox(GetPosition(), XMFLOAT3(20.0f, 20.0f, 20.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+{	
 	//	XMStoreFloat4(&m_xmOOBB.Orientation, XMQuaternionNormalize(XMLoadFloat4(&m_xmOOBB.Orientation)));
+		//
+		//m_xmOOBB.Transform(m_xmOOBB, XMLoadFloat4x4(&m_xmf4x4Transform));
+		m_xmOOBB = BoundingOrientedBox(GetTransformPosition(), m_xmOOBB.Extents, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+		XMStoreFloat4(&m_xmOOBB.Orientation, XMQuaternionNormalize(XMLoadFloat4(&m_xmOOBB.Orientation)));
 }
 
 void CGameObject::SetMesh(CMesh *pMesh)
@@ -262,6 +265,11 @@ XMFLOAT3 CGameObject::GetPosition()
 {
 	return(XMFLOAT3(m_xmf4x4World._41, m_xmf4x4World._42, m_xmf4x4World._43));
 }
+XMFLOAT3 CGameObject::GetTransformPosition()
+{
+	return(XMFLOAT3(m_xmf4x4Transform._41, m_xmf4x4Transform._42, m_xmf4x4Transform._43));
+}
+
 
 XMFLOAT3 CGameObject::GetLook()
 {
@@ -805,25 +813,25 @@ void CMi24Object::OnInitialize()
 }
 ////////////////////////////////////////////////////////////////////////////////
 
-//inline float RandF(float fMin, float fMax)
-//{
-//	return(fMin + ((float)rand() / (float)RAND_MAX) * (fMax - fMin));
-//}
-//XMVECTOR RandomUnitVectorOnSphere()
-//{
-//	XMVECTOR xmvOne = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
-//	XMVECTOR xmvZero = XMVectorZero();
-//
-//	while (true)
-//	{
-//		XMVECTOR v = XMVectorSet(RandF(-1.0f, 1.0f), RandF(-1.0f, 1.0f), RandF(-1.0f, 1.0f), 0.0f);
-//		if (!XMVector3Greater(XMVector3LengthSq(v), xmvOne)) return(XMVector3Normalize(v));
-//	}
-//}
-//
+inline float RandF(float fMin, float fMax)
+{
+	return(fMin + ((float)rand() / (float)RAND_MAX) * (fMax - fMin));
+}
+XMVECTOR RandomUnitVectorOnSphere()
+{
+	XMVECTOR xmvOne = XMVectorSet(1.0f, 1.0f, 1.0f, 1.0f);
+	XMVECTOR xmvZero = XMVectorZero();
+
+	while (true)
+	{
+		XMVECTOR v = XMVectorSet(RandF(-1.0f, 1.0f), RandF(-1.0f, 1.0f), RandF(-1.0f, 1.0f), 0.0f);
+		if (!XMVector3Greater(XMVector3LengthSq(v), xmvOne)) return(XMVector3Normalize(v));
+	}
+}
+
 //XMFLOAT3 CExplosiveObject::m_pxmf3SphereVectors[EXPLOSION_DEBRISES];
 //CMesh* CExplosiveObject::m_pExplosionMesh = NULL;
-//
+
 //CExplosiveObject::CExplosiveObject()
 //{
 //}
@@ -836,7 +844,7 @@ void CMi24Object::OnInitialize()
 //{
 //	for (int i = 0; i < EXPLOSION_DEBRISES; i++) XMStoreFloat3(&m_pxmf3SphereVectors[i], ::RandomUnitVectorOnSphere());
 //
-//	m_pExplosionMesh = new CCubeMesh(0.5f, 0.5f, 0.5f);
+//	CGameObject* pApacheModel = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/TREE.bin");
 //}
 //
 //void CExplosiveObject::Animate(float fElapsedTime)

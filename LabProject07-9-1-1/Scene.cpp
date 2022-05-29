@@ -70,69 +70,86 @@ void CScene::BuildObjects(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *p
 
 	BuildDefaultLightsAndMaterials();
 
-	m_nGameObjects = 1;
+	m_nGameObjects = 65;
 	m_ppGameObjects = new CGameObject*[m_nGameObjects];
-
+	m_nGameCarObjects = 5;
+	m_ppGameCarObjects = new CGameObject * [m_nGameCarObjects];
 	CGameObject *pApacheModel = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/TREE.bin");
 	//pApacheModel->m_pMesh->Set_xmBoundingBox()
 	//pApacheModel->SetOOBB(CMesh);
 	CApacheObject* pApacheObject = NULL;
-	for (int i = 0; i < 1; i++) {
+	for (int i = 0; i < 60; i++) {
 		pApacheObject = new CApacheObject();
 		pApacheObject->SetChild(pApacheModel, true);
 		
 		pApacheObject->OnInitialize();
 		if(i<30)
-		pApacheObject->SetPosition(0.0f, 0.0f,-100.0f);
+		pApacheObject->SetPosition(-100.0f, 0.0f, -200.0f - (i - 30) * 50);
 		
 		else
 		pApacheObject->SetPosition(100.0f, 0.0f, -200.0f + (i-30) * 50);
 		pApacheObject->SetScale(5.0f, 5.0f, 5.0f);
 		pApacheObject->Rotate(0.0f, 90.0f, 0.0f);
-		pApacheObject->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(20.0f, 20.0f, 20.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+		pApacheObject->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(5.0f, 5.0f, 5.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 		pApacheObject->SetOOBB();
 		m_ppGameObjects[i] = pApacheObject;
 	}
-	/*pApacheObject = new CApacheObject();
-	pApacheObject->SetChild(pApacheModel, true);
+	CGameObject* pOldCarModel = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/OldCar.bin");
+	CGunshipObject* pGunshipObject = NULL;
+	pApacheObject = new CApacheObject();
+	pApacheObject->SetChild(pOldCarModel, true);
 	pApacheObject->OnInitialize();
 	pApacheObject->SetPosition(-75.0f, 0.0f, 80.0f);
-	pApacheObject->SetScale(1.5f, 1.5f, 1.5f);
-	pApacheObject->Rotate(0.0f, -90.0f, 0.0f);
+	pApacheObject->SetScale(5.0f, 5.0f, 5.0f);
+	pApacheObject->Rotate(0.0f, 0.0f, 0.0f);
+	pApacheObject->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(5.0f, 5.0f, 7.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	pApacheObject->SetOOBB();
 	m_ppGameObjects[60] = pApacheObject;
 
-	CGameObject *pGunshipModel = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/Hummer.bin");
-	CGunshipObject* pGunshipObject = NULL;
+	pApacheObject = new CApacheObject();
+	pApacheObject->SetChild(pOldCarModel, true);
+	pApacheObject->OnInitialize();
+	pApacheObject->SetPosition(-35.0f, 0.0f, 80.0f);
+	pApacheObject->SetScale(5.0f, 5.0f, 5.0f);
+	pApacheObject->Rotate(0.0f, 0.0f, 0.0f);
+	
+	m_ppGameObjects[61] = pApacheObject;
+	m_ppGameObjects[61]->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(5.0f, 5.0f, 7.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	pApacheObject->SetOOBB();
 
-	pGunshipObject = new CGunshipObject();
-	pGunshipObject->SetChild(pGunshipModel, true);
-	pGunshipObject->OnInitialize();
-	pGunshipObject->SetPosition(135.0f, 0.0f, 220.0f);
-	pGunshipObject->SetScale(8.5f, 8.5f, 8.5f);
-	pGunshipObject->Rotate(0.0f, -90.0f, 0.0f);
-	m_ppGameObjects[61] = pGunshipObject;
+	pApacheObject = new CApacheObject();
+	pApacheObject->SetChild(pOldCarModel, true);
+	pApacheObject->OnInitialize();
+	pApacheObject->SetPosition(-0.0f, 0.0f, 80.0f);
+	pApacheObject->SetScale(5.0f, 5.0f, 5.0f);
+	pApacheObject->Rotate(0.0f, 0.0f, 0.0f);
 
-	CGameObject *pSuperCobraModel = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/Hummer.bin");
-	CSuperCobraObject* pSuperCobraObject = NULL;
+	m_ppGameObjects[62] = pApacheObject;
+	m_ppGameObjects[62]->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(5.0f, 5.0f, 7.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	pApacheObject->SetOOBB();
 
-	pSuperCobraObject = new CSuperCobraObject();
-	pSuperCobraObject->SetChild(pSuperCobraModel, true);
-	pSuperCobraObject->OnInitialize();
-	pSuperCobraObject->SetPosition(95.0f, 0.0f, 50.0f);
-	pSuperCobraObject->SetScale(4.5f, 4.5f, 4.5f);
-	pSuperCobraObject->Rotate(0.0f, -90.0f, 0.0f);
-	m_ppGameObjects[62] = pSuperCobraObject;
 
-	CGameObject *pMi24Model = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/Hummer.bin");
-	CMi24Object* pMi24Object = NULL;
+	pApacheObject = new CApacheObject();
+	pApacheObject->SetChild(pOldCarModel, true);
+	pApacheObject->OnInitialize();
+	pApacheObject->SetPosition(35.0f, 0.0f, 80.0f);
+	pApacheObject->SetScale(5.0f, 5.0f, 5.0f);
+	pApacheObject->Rotate(0.0f, 0.0f, 0.0f);
+	m_ppGameObjects[63] = pApacheObject;
+	m_ppGameObjects[63]->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(5.0f, 5.0f, 7.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	pApacheObject->SetOOBB();
 
-	pMi24Object = new CMi24Object();
-	pMi24Object->SetChild(pMi24Model, true);
-	pMi24Object->OnInitialize();
-	pMi24Object->SetPosition(-95.0f, 0.0f, 50.0f);
-	pMi24Object->SetScale(4.5f, 4.5f, 4.5f);
-	pMi24Object->Rotate(0.0f, -90.0f, 0.0f);
-	m_ppGameObjects[63] = pMi24Object;*/
+
+	pApacheObject = new CApacheObject();
+	pApacheObject->SetChild(pOldCarModel, true);
+	pApacheObject->OnInitialize();
+	pApacheObject->SetPosition(75.0f, 0.0f, 80.0f);
+	pApacheObject->SetScale(5.0f, 5.0f, 5.0f);
+	pApacheObject->Rotate(0.0f, 0.0f, 0.0f);
+	m_ppGameObjects[64] = pApacheObject;
+	m_ppGameObjects[64]->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(5.0f, 5.0f, 7.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	pApacheObject->SetOOBB();
+
 
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 
@@ -284,8 +301,17 @@ bool CScene::ProcessInput(UCHAR *pKeysBuffer)
 void CScene::AnimateObjects(float fTimeElapsed)
 {
 	m_fElapsedTime = fTimeElapsed;
-
-	for (int i = 0; i < m_nGameObjects; i++) m_ppGameObjects[i]->Animate(fTimeElapsed, NULL);
+	for (int i = 60; i < 65; i++)
+	{
+		if (m_ppGameObjects[i]->GetPosition().z < -40.0f) 
+		{
+			m_ppGameObjects[i]->SetPositionZ(RANDOM_NUM(400,700));
+		}
+		m_ppGameObjects[i]->MoveForward(-0.2f);
+		//m_ppGameObjects[i]->m_xmOOBB = BoundingOrientedBox(m_ppGameObjects[i]->GetPosition(), m_ppGameObjects[i]->m_xmOOBB.Extents, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	}
+	for (int i = 60; i < m_nGameObjects; i++) m_ppGameObjects[i]->Animate(fTimeElapsed, NULL);
+	
 	m_pPlayer->Animate(fTimeElapsed, NULL);
 	if (m_pLights)
 	{
@@ -328,10 +354,10 @@ void CScene::CheckObjectByWallCollision()
 	{
 		BoundingOrientedBox wmPlayerOOBB = m_pPlayer->m_xmOOBB;
 		ContainmentType containType = m_ppGameObjects[i]->m_xmOOBB.Contains(wmPlayerOOBB);
-		if(m_ppGameObjects[i]->m_xmOOBBTransformed.Intersects(wmPlayerOOBB))
+		if (m_ppGameObjects[i]->m_xmOOBB.Intersects(wmPlayerOOBB)) 
 			m_pPlayer->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
 		//else
-	//_pPlayer->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
+			//m_pPlayer->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
 	}
 
 }

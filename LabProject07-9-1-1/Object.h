@@ -167,6 +167,7 @@ public:
 	virtual void ReleaseUploadBuffers();
 
 	XMFLOAT3 GetPosition();
+	XMFLOAT3 GetTransformPosition();
 	XMFLOAT3 GetLook();
 	XMFLOAT3 GetUp();
 	XMFLOAT3 GetRight();
