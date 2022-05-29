@@ -77,6 +77,7 @@ public:
 	int							m_nGameObjects = 0;
 	CParticleObject  ** m_ppGameParticleObjects = NULL;
 	int							m_nGameParticleObjects = 0;
+	CRotatingObject		**m_pprotateGameObject = NULL;
 
 	LIGHT* m_pLights = NULL;
 	int							m_nLights = 0;

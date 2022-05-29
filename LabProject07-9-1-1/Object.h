@@ -152,8 +152,7 @@ public:
 
 	void Awake();
 	void Sleep() { m_bActive = false; }
-	bool IsActive() const { return m_bActive; }
-	void AnimateParticle(float fTimeElapsed);
+	bool IsActive() const { return m_bActive; };
 
 	virtual void BuildMaterials(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList) { }
 	void SetCollider(CGameObject* pCollider) { m_pCollider = pCollider; }

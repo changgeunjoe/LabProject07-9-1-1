@@ -74,6 +74,7 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	m_ppGameObjects = new CGameObject * [m_nGameObjects];
 	m_pParticleModel= CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/TREE.bin");
 	CGameObject* pApacheModel = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/TREE.bin");
+	m_nGameParticleObjects =1;
 	//pApacheModel->m_pMesh->Set_xmBoundingBox()
 	//pApacheModel->SetOOBB(CMesh);
 	CApacheObject* pApacheObject = NULL;
@@ -138,16 +139,41 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	m_ppGameObjects[63]->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(5.0f, 5.0f, 7.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 	pApacheObject->SetOOBB();
 
-
 	pApacheObject = new CApacheObject();
 	pApacheObject->SetChild(pOldCarModel, true);
 	pApacheObject->OnInitialize();
-	pApacheObject->SetPosition(75.0f, 0.0f, 80.0f);
+	pApacheObject->SetPosition(70.0f, 0.0f, 80.0f);
 	pApacheObject->SetScale(5.0f, 5.0f, 5.0f);
 	pApacheObject->Rotate(0.0f, 0.0f, 0.0f);
 	m_ppGameObjects[64] = pApacheObject;
 	m_ppGameObjects[64]->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(5.0f, 5.0f, 7.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 	pApacheObject->SetOOBB();
+
+	/*m_ppGameParticleObjects = new CParticleObject * [m_nGameParticleObjects];
+	CParticleObject* pParticleObject = NULL;
+
+	pParticleObject = new CParticleObject();
+	pParticleObject->SetChild(m_pParticleModel, true);
+	pParticleObject->OnInitialize();
+	pParticleObject->SetPosition(35.0f, 0.0f, 80.0f);
+	pParticleObject->SetScale(5.0f, 5.0f, 5.0f);
+	pParticleObject->Rotate(0.0f, 0.0f, 0.0f);
+	m_ppGameParticleObjects[0] = pParticleObject;*/
+	//m_ppGameObjects[63]->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(5.0f, 5.0f, 7.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	//pApacheObject->SetOOBB();
+
+	Particles(XMFLOAT3(0.0f,0.0f,0.0f), 1);
+
+
+	//pApacheObject = new CApacheObject();
+	//pApacheObject->SetChild(pOldCarModel, true);
+	//pApacheObject->OnInitialize();
+	//pApacheObject->SetPosition(75.0f, 0.0f, 80.0f);
+	//pApacheObject->SetScale(5.0f, 5.0f, 5.0f);
+	//pApacheObject->Rotate(0.0f, 0.0f, 0.0f);
+	//m_ppGameObjects[64] = pApacheObject;
+	//m_ppGameObjects[64]->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(5.0f, 5.0f, 7.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	//pApacheObject->SetOOBB();
 
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 
@@ -266,7 +292,7 @@ void CScene::ReleaseShaderVariables()
 void CScene::ReleaseUploadBuffers()
 {
 	for (int i = 0; i < m_nGameObjects; i++) m_ppGameObjects[i]->ReleaseUploadBuffers();
-	for (int i = 0; i < m_nGameParticleObjects; i++) m_ppGameParticleObjects[i]->ReleaseUploadBuffers();
+//	for (int i = 0; i < m_nGameParticleObjects; i++) m_ppGameParticleObjects[i]->ReleaseUploadBuffers();
 }
 
 bool CScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
@@ -319,7 +345,6 @@ void CScene::AnimateObjects(float fTimeElapsed)
 	{
 		if (m_ppGameParticleObjects[i]->IsActive())
 		{
-			m_ppGameObjects[i]->AnimateParticle(fTimeElapsed);
 		}
 	}
 
@@ -376,7 +401,7 @@ void CScene::CheckObjectByWallCollision()
 		ContainmentType containType = m_ppGameObjects[i]->m_xmOOBB.Contains(wmPlayerOOBB);
 		if (m_ppGameObjects[i]->m_xmOOBB.Intersects(wmPlayerOOBB))
 			m_pPlayer->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
-			Particles(m_pPlayer->GetPosition(), 300);
+			//Particles(m_pPlayer->GetPosition(), 300);
 		//else
 			//m_pPlayer->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
 	}
@@ -385,29 +410,38 @@ void CScene::CheckObjectByWallCollision()
 
 void CScene::Particles(XMFLOAT3 pos, int nParticles)
 {
-
-	m_nGameParticleObjects = nParticles;
+	//m_ppGameParticleObjects = new CParticleObject * [m_nGameParticleObjects];
+	//CParticleObject* pParticleObject = NULL;
+	//for (int i = 0; i < m_nGameParticleObjects; i++)
+	//{
+	//	pParticleObject = new CParticleObject();
+	//	pParticleObject->SetChild(m_pParticleModel, true);
+	//	pParticleObject->OnInitialize();
+	//	pParticleObject->Awake();
+	//	pParticleObject->SetMovingDirection(XMFLOAT3(
+	//		(float)RANDOM_NUM(-1000, 1000),
+	//		(float)RANDOM_NUM(-1000, 1000),
+	//		(float)RANDOM_NUM(-1000, 1000)));
+	//	pParticleObject->SetPosition(pos);
+	//	pParticleObject->SetScale(5.0f, 5.0f, 5.0f);
+	//	pParticleObject->SetMovingRange(1.0f);
+	//	pParticleObject->SetRotationAxis(XMFLOAT3(
+	//		(float)RANDOM_NUM(-1000, 1000),
+	//		(float)RANDOM_NUM(-1000, 1000),
+	//		(float)RANDOM_NUM(-1000, 1000)));
+	//	pParticleObject->SetRotationSpeed((float)RANDOM_NUM(50, 100));
+	//	pParticleObject->SetMovingSpeed(2.0f);
+	//	m_ppGameParticleObjects[i] = pParticleObject;
+	//}
 	m_ppGameParticleObjects = new CParticleObject * [m_nGameParticleObjects];
-	CApacheObject* pApacheObject = NULL;
-	for (int i = 0; i < m_nGameParticleObjects; i++)
-	{
-			pApacheObject = new CApacheObject();
-			pApacheObject->SetChild(pApacheModel, true);
-			pApacheObject->OnInitialize();
-		m_ppGameParticleObjects[i]->Awake();
-		m_ppGameParticleObjects[i]->SetMovingDirection(XMFLOAT3(
-			(float)RANDOM_NUM(-1000, 1000),
-			(float)RANDOM_NUM(-1000, 1000),
-			(float)RANDOM_NUM(-1000, 1000)));
-		m_ppGameParticleObjects[i]->SetMovingRange(1.0f);
-		m_ppGameParticleObjects[i]->SetPosition(pos);
-		m_ppGameParticleObjects[i]->SetRotationAxis(XMFLOAT3(
-			(float)RANDOM_NUM(-1000, 1000),
-			(float)RANDOM_NUM(-1000, 1000),
-			(float)RANDOM_NUM(-1000, 1000)));
-		m_ppGameParticleObjects[i]->SetRotationSpeed((float)RANDOM_NUM(50, 100));
-		m_ppGameParticleObjects[i]->SetMovingSpeed(2.0f);
-	}
+	CParticleObject* pParticleObject = NULL;
 
+	pParticleObject = new CParticleObject();
+	pParticleObject->SetChild(m_pParticleModel, true);
+	pParticleObject->OnInitialize();
+	pParticleObject->SetPosition(35.0f, 0.0f, 80.0f);
+	pParticleObject->SetScale(5.0f, 5.0f, 5.0f);
+	pParticleObject->Rotate(0.0f, 0.0f, 0.0f);
+	m_ppGameParticleObjects[0] = pParticleObject;
 }
 
