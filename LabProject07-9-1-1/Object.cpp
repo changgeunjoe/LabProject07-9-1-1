@@ -318,9 +318,10 @@ void CGameObject::MoveForward(float fDistance)
 void CGameObject::Move(XMFLOAT3& vDirection, float fSpeed)
 {
 	
-	m_xmf4x4World._41=m_xmf4x4World._41 + vDirection.x * fSpeed;
-	m_xmf4x4World._42=m_xmf4x4World._42 + vDirection.y * fSpeed;
-	m_xmf4x4World._43=m_xmf4x4World._43 + vDirection.z * fSpeed;
+	SetPosition(
+		m_xmf4x4World._41 + vDirection.x * fSpeed,
+		m_xmf4x4World._42 + vDirection.y * fSpeed,
+		m_xmf4x4World._43 + vDirection.z * fSpeed);
 }
 
 void CGameObject::Rotate(float fPitch, float fYaw, float fRoll)

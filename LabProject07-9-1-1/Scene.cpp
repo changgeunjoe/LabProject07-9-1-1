@@ -74,7 +74,7 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	m_ppGameObjects = new CGameObject * [m_nGameObjects];
 	m_pParticleModel= CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/TREE.bin");
 	CGameObject* pApacheModel = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/TREE.bin");
-	m_nGameParticleObjects =1;
+	m_nGameParticleObjects =20;
 	//pApacheModel->m_pMesh->Set_xmBoundingBox()
 	//pApacheModel->SetOOBB(CMesh);
 	CApacheObject* pApacheObject = NULL;
@@ -162,7 +162,7 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	//m_ppGameObjects[63]->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(5.0f, 5.0f, 7.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 	//pApacheObject->SetOOBB();
 
-	Particles(XMFLOAT3(0.0f,0.0f,0.0f), 1);
+	//Particles(XMFLOAT3(0.0f,0.0f,0.0f), 1);
 
 
 	//pApacheObject = new CApacheObject();
@@ -292,7 +292,7 @@ void CScene::ReleaseShaderVariables()
 void CScene::ReleaseUploadBuffers()
 {
 	for (int i = 0; i < m_nGameObjects; i++) m_ppGameObjects[i]->ReleaseUploadBuffers();
-//	for (int i = 0; i < m_nGameParticleObjects; i++) m_ppGameParticleObjects[i]->ReleaseUploadBuffers();
+	//for (int i = 0; i < m_nGameParticleObjects; i++) m_ppGameParticleObjects[i]->ReleaseUploadBuffers();
 }
 
 bool CScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
@@ -341,12 +341,12 @@ void CScene::AnimateObjects(float fTimeElapsed)
 		//m_ppGameObjects[i]->m_xmOOBB = BoundingOrientedBox(m_ppGameObjects[i]->GetPosition(), m_ppGameObjects[i]->m_xmOOBB.Extents, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 	}
 	for (int i = 60; i < m_nGameObjects; i++) m_ppGameObjects[i]->Animate(fTimeElapsed, NULL);
-	for (int i = 0; i < m_nGameParticleObjects; i++)
+	/*for (int i = 0; i < m_nGameParticleObjects; i++)
 	{
 		if (m_ppGameParticleObjects[i]->IsActive())
 		{
 		}
-	}
+	}*/
 
 	m_pPlayer->Animate(fTimeElapsed, NULL);
 	if (m_pLights)
@@ -401,7 +401,7 @@ void CScene::CheckObjectByWallCollision()
 		ContainmentType containType = m_ppGameObjects[i]->m_xmOOBB.Contains(wmPlayerOOBB);
 		if (m_ppGameObjects[i]->m_xmOOBB.Intersects(wmPlayerOOBB))
 			m_pPlayer->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
-			//Particles(m_pPlayer->GetPosition(), 300);
+			Particles(XMFLOAT3(0.0f, 0.0f, 0.0f), 20);
 		//else
 			//m_pPlayer->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
 	}
@@ -410,30 +410,33 @@ void CScene::CheckObjectByWallCollision()
 
 void CScene::Particles(XMFLOAT3 pos, int nParticles)
 {
-	//m_ppGameParticleObjects = new CParticleObject * [m_nGameParticleObjects];
-	//CParticleObject* pParticleObject = NULL;
-	//for (int i = 0; i < m_nGameParticleObjects; i++)
-	//{
-	//	pParticleObject = new CParticleObject();
-	//	pParticleObject->SetChild(m_pParticleModel, true);
-	//	pParticleObject->OnInitialize();
-	//	pParticleObject->Awake();
-	//	pParticleObject->SetMovingDirection(XMFLOAT3(
-	//		(float)RANDOM_NUM(-1000, 1000),
-	//		(float)RANDOM_NUM(-1000, 1000),
-	//		(float)RANDOM_NUM(-1000, 1000)));
-	//	pParticleObject->SetPosition(pos);
-	//	pParticleObject->SetScale(5.0f, 5.0f, 5.0f);
-	//	pParticleObject->SetMovingRange(1.0f);
-	//	pParticleObject->SetRotationAxis(XMFLOAT3(
-	//		(float)RANDOM_NUM(-1000, 1000),
-	//		(float)RANDOM_NUM(-1000, 1000),
-	//		(float)RANDOM_NUM(-1000, 1000)));
-	//	pParticleObject->SetRotationSpeed((float)RANDOM_NUM(50, 100));
-	//	pParticleObject->SetMovingSpeed(2.0f);
-	//	m_ppGameParticleObjects[i] = pParticleObject;
-	//}
 	m_ppGameParticleObjects = new CParticleObject * [m_nGameParticleObjects];
+	CParticleObject* pParticleObject = NULL;
+	for (int i = 0; i < m_nGameParticleObjects; i++)
+	{
+		pParticleObject = new CParticleObject();
+		pParticleObject->SetChild(m_pParticleModel, true);
+		pParticleObject->OnInitialize();
+		pParticleObject->Awake();
+		pParticleObject->SetMovingDirection(XMFLOAT3(
+			(float)RANDOM_NUM(-1000, 1000),
+			(float)RANDOM_NUM(-1000, 1000),
+			(float)RANDOM_NUM(-1000, 1000)));
+		pParticleObject->SetPosition(pos);
+		pParticleObject->SetScale(5.0f, 5.0f, 5.0f);
+		pParticleObject->SetMovingRange(1.0f);
+		pParticleObject->SetRotationAxis(XMFLOAT3(
+			(float)RANDOM_NUM(-1000, 1000),
+			(float)RANDOM_NUM(-1000, 1000),
+			(float)RANDOM_NUM(-1000, 1000)));
+		pParticleObject->SetRotationSpeed((float)RANDOM_NUM(50, 100));
+		pParticleObject->SetMovingSpeed(2.0f);
+		m_ppGameParticleObjects[i] = pParticleObject;
+	}
+
+
+	////////////////////////////////////////////
+	/*m_ppGameParticleObjects = new CParticleObject * [m_nGameParticleObjects];
 	CParticleObject* pParticleObject = NULL;
 
 	pParticleObject = new CParticleObject();
@@ -442,6 +445,6 @@ void CScene::Particles(XMFLOAT3 pos, int nParticles)
 	pParticleObject->SetPosition(35.0f, 0.0f, 80.0f);
 	pParticleObject->SetScale(5.0f, 5.0f, 5.0f);
 	pParticleObject->Rotate(0.0f, 0.0f, 0.0f);
-	m_ppGameParticleObjects[0] = pParticleObject;
+	m_ppGameParticleObjects[0] = pParticleObject;*/
 }
 
