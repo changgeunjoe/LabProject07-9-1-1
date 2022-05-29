@@ -90,4 +90,8 @@ public:
 	CGameObject* m_pParticleModel = NULL;
 
 	float						m_fElapsedTime = 0.0f;
+
+	bool				m_bGameOver = false;
+	float				m_fRestartCounter = 0.0f;
+
 };

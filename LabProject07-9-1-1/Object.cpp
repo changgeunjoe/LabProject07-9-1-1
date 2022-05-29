@@ -66,7 +66,7 @@ CGameObject::CGameObject()
 	m_xmf4x4Transform = Matrix4x4::Identity();
 	m_xmf4x4World = Matrix4x4::Identity();
 	m_pCollider = NULL;
-	m_bActive = false;
+	m_bActive = true;
 }
 
 CGameObject::~CGameObject()
@@ -126,10 +126,6 @@ void CGameObject::UpdateBoundingBox()
 	XMStoreFloat4(&m_xmOOBB.Orientation, XMQuaternionNormalize(XMLoadFloat4(&m_xmOOBB.Orientation)));
 }
 
-void CGameObject::Awake()
-{
-	m_bActive = true;
-}
 
 void CGameObject::SetMesh(CMesh* pMesh)
 {
@@ -160,6 +156,7 @@ void CGameObject::SetMaterial(int nMaterial, CMaterial* pMaterial)
 
 void CGameObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
 {
+	if (!m_bActive) return;
 	if (m_pSibling) m_pSibling->Animate(fTimeElapsed, pxmf4x4Parent);
 	if (m_pChild) m_pChild->Animate(fTimeElapsed, &m_xmf4x4World);
 	UpdateBoundingBox();
@@ -179,6 +176,7 @@ CGameObject* CGameObject::FindFrame(const char* pstrFrameName)
 
 void CGameObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
 {
+	if (!m_bActive) return;
 	OnPrepareRender();
 
 	UpdateShaderVariable(pd3dCommandList, &m_xmf4x4World);
@@ -294,6 +292,7 @@ XMFLOAT3 CGameObject::GetRight()
 
 void CGameObject::MoveStrafe(float fDistance)
 {
+	if (!m_bActive) return;
 	XMFLOAT3 xmf3Position = GetPosition();
 	XMFLOAT3 xmf3Right = GetRight();
 	xmf3Position = Vector3::Add(xmf3Position, xmf3Right, fDistance);
@@ -302,6 +301,7 @@ void CGameObject::MoveStrafe(float fDistance)
 
 void CGameObject::MoveUp(float fDistance)
 {
+	if (!m_bActive) return;
 	XMFLOAT3 xmf3Position = GetPosition();
 	XMFLOAT3 xmf3Up = GetUp();
 	xmf3Position = Vector3::Add(xmf3Position, xmf3Up, fDistance);
@@ -310,6 +310,7 @@ void CGameObject::MoveUp(float fDistance)
 
 void CGameObject::MoveForward(float fDistance)
 {
+	if (!m_bActive) return;
 	XMFLOAT3 xmf3Position = GetPosition();
 	XMFLOAT3 xmf3Look = GetLook();
 	xmf3Position = Vector3::Add(xmf3Position, xmf3Look, fDistance);
@@ -693,6 +694,7 @@ void CRotatingObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
 
 void CRotatingObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
 {
+
 	CGameObject::Render(pd3dCommandList, pCamera);
 }
 

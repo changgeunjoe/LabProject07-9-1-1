@@ -149,6 +149,7 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	m_ppGameObjects[64]->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(5.0f, 5.0f, 7.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 	pApacheObject->SetOOBB();
 
+	Particles(XMFLOAT3(0.0f, 0.0f, 0.0f), 20);
 	/*m_ppGameParticleObjects = new CParticleObject * [m_nGameParticleObjects];
 	CParticleObject* pParticleObject = NULL;
 
@@ -331,34 +332,46 @@ bool CScene::ProcessInput(UCHAR* pKeysBuffer)
 void CScene::AnimateObjects(float fTimeElapsed)
 {
 	m_fElapsedTime = fTimeElapsed;
-	for (int i = 60; i < 65; i++)
-	{
-		if (m_ppGameObjects[i]->GetPosition().z < -40.0f)
+
+	if (m_bGameOver) {
+		m_pPlayer->Sleep();
+		m_fRestartCounter += fTimeElapsed;
+		if (m_fRestartCounter > 2)
 		{
-			m_ppGameObjects[i]->SetPositionZ(RANDOM_NUM(400, 700));
+			m_fRestartCounter = 0.0f;
+			m_bGameOver = false;
+			m_pPlayer->Awake();
+			m_pPlayer->Reset();
 		}
-		m_ppGameObjects[i]->MoveForward(-0.2f);
-		//m_ppGameObjects[i]->m_xmOOBB = BoundingOrientedBox(m_ppGameObjects[i]->GetPosition(), m_ppGameObjects[i]->m_xmOOBB.Extents, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 	}
-	for (int i = 60; i < m_nGameObjects; i++) m_ppGameObjects[i]->Animate(fTimeElapsed, NULL);
-	/*for (int i = 0; i < m_nGameParticleObjects; i++)
-	{
-		if (m_ppGameParticleObjects[i]->IsActive())
+		for (int i = 60; i < 65; i++)
 		{
+			if (m_ppGameObjects[i]->GetPosition().z < -40.0f)
+			{
+				m_ppGameObjects[i]->SetPositionZ(RANDOM_NUM(400, 700));
+			}
+			m_ppGameObjects[i]->MoveForward(-0.2f);
+			//m_ppGameObjects[i]->m_xmOOBB = BoundingOrientedBox(m_ppGameObjects[i]->GetPosition(), m_ppGameObjects[i]->m_xmOOBB.Extents, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 		}
-	}*/
+		for (int i = 60; i < m_nGameObjects; i++) m_ppGameObjects[i]->Animate(fTimeElapsed, NULL);
+		/*for (int i = 0; i < m_nGameParticleObjects; i++)
+		{
+			if (m_ppGameParticleObjects[i]->IsActive())
+			{
+			}
+		}*/
 
-	m_pPlayer->Animate(fTimeElapsed, NULL);
-	if (m_pLights)
-	{
-		m_pLights[1].m_xmf3Position = m_pPlayer->GetPosition();
-		m_pLights[1].m_xmf3Direction = m_pPlayer->GetLookVector();
-		//m_ppGameObjects[0]->SetPositionZ( m_pPlayer->GetPosition().z);
+		m_pPlayer->Animate(fTimeElapsed, NULL);
+		if (m_pLights)
+		{
+			m_pLights[1].m_xmf3Position = m_pPlayer->GetPosition();
+			m_pLights[1].m_xmf3Direction = m_pPlayer->GetLookVector();
+			//m_ppGameObjects[0]->SetPositionZ( m_pPlayer->GetPosition().z);
 
 
-	}
-	CheckObjectByWallCollision();
-
+		}
+		CheckObjectByWallCollision();
+	
 }
 
 void CScene::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
@@ -384,13 +397,14 @@ void CScene::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera
 	}
 	for (int i = 0; i < m_nGameParticleObjects; i++)
 	{
-		if (m_ppGameParticleObjects[i])
+		if (m_ppGameParticleObjects[i]&& m_bGameOver)
 		{
 			m_ppGameParticleObjects[i]->Animate(m_fElapsedTime, NULL);
 			m_ppGameParticleObjects[i]->UpdateTransform(NULL);
 			m_ppGameParticleObjects[i]->Render(pd3dCommandList, pCamera);
 		}
 	}
+	
 }
 
 void CScene::CheckObjectByWallCollision()
@@ -399,9 +413,20 @@ void CScene::CheckObjectByWallCollision()
 	{
 		BoundingOrientedBox wmPlayerOOBB = m_pPlayer->m_xmOOBB;
 		ContainmentType containType = m_ppGameObjects[i]->m_xmOOBB.Contains(wmPlayerOOBB);
+		
 		if (m_ppGameObjects[i]->m_xmOOBB.Intersects(wmPlayerOOBB))
-			m_pPlayer->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
-			Particles(XMFLOAT3(0.0f, 0.0f, 0.0f), 20);
+		{
+			XMFLOAT3 CameraPosition= m_pPlayer->GetCamera()->GetPosition();
+			m_bGameOver=true;
+			//m_pPlayer->Release();
+		for (int i = 0; i < m_nGameParticleObjects; i++)
+		{
+			m_ppGameParticleObjects[i]->SetMovingSpeed(20.0f);
+			m_ppGameParticleObjects[i]->SetPosition(m_pPlayer->GetPosition());
+		}
+	//	m_pPlayer->SetPosition(XMFLOAT3(50.0f, 500.0f, 0.0f));
+	//m_pPlayer->GetCamera()->SetPosition(CameraPosition);
+		}
 		//else
 			//m_pPlayer->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
 	}
@@ -433,7 +458,6 @@ void CScene::Particles(XMFLOAT3 pos, int nParticles)
 		pParticleObject->SetMovingSpeed(2.0f);
 		m_ppGameParticleObjects[i] = pParticleObject;
 	}
-
 
 	////////////////////////////////////////////
 	/*m_ppGameParticleObjects = new CParticleObject * [m_nGameParticleObjects];

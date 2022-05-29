@@ -52,7 +52,14 @@ void CPlayer::ReleaseShaderVariables()
 {
 	if (m_pCamera) m_pCamera->ReleaseShaderVariables();
 }
-
+void CPlayer::Reset()
+{
+	m_xmf4x4World = Matrix4x4::Identity();
+	m_xmf3Position = XMFLOAT3A(0.0f, 0.0f, m_xmf3Position.z);
+	m_xmf3Right = XMFLOAT3A(1.0f, 0.0f, 0.0f);
+	m_xmf3Up = XMFLOAT3A(0.0f, 1.0f, 0.0f);
+	m_xmf3Look = XMFLOAT3A(0.0f, 0.0f, 1.0f);
+}
 void CPlayer::Move(DWORD dwDirection, float fDistance, bool bUpdateVelocity)
 {
 	if (dwDirection)
@@ -228,6 +235,7 @@ void CPlayer::OnPrepareRender()
 
 void CPlayer::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera)
 {
+
 	DWORD nCameraMode = (pCamera) ? pCamera->GetMode() : 0x00;
 	if (nCameraMode == THIRD_PERSON_CAMERA) CGameObject::Render(pd3dCommandList, pCamera);
 }

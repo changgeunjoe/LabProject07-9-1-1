@@ -471,12 +471,14 @@ void CGameFramework::ProcessInput()
 					m_pPlayer->Rotate(cyDelta, cxDelta, 0.0f);
 			}
 			
-			if (dwDirection) m_pPlayer->Move(dwDirection, 1.0 , true);
-			if (pKeysBuffer['W'] & 0xF0) m_pPlayer->Move(XMFLOAT3(0, 0, 1));
-			if (pKeysBuffer['S'] & 0xF0) m_pPlayer->Move(XMFLOAT3(0, 0, -1));
+			
+			if (pKeysBuffer[VK_SPACE] & 0xF0)m_pPlayer->Move(XMFLOAT3(0, 0, 1));
+			
 			if (pKeysBuffer['A'] & 0xF0) m_pPlayer->Move(XMFLOAT3(-1, 0, 0));
 			if (pKeysBuffer['D'] & 0xF0) m_pPlayer->Move(XMFLOAT3(1, 0, 0));
+			if (dwDirection!=VK_SPACE) m_pPlayer->Move(dwDirection, 1.0, true);
 			if (pKeysBuffer[VK_SPACE] & 0xF0)m_pCamera->Move(XMFLOAT3(0, 1, -3));
+			if (pKeysBuffer[VK_SPACE] & 0xF0)m_pPlayer->Move(XMFLOAT3(0, 0, -1));
 		}
 	}
 	m_pPlayer->Update(m_GameTimer.GetTimeElapsed());

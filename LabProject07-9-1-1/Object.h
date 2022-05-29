@@ -119,7 +119,7 @@ public:
 	CGameObject();
 	virtual ~CGameObject();
 private:
-	bool					m_bActive = false;
+	bool					m_bActive = true;
 public:
 	char							m_pstrFrameName[64];
 
@@ -150,7 +150,7 @@ public:
 	void SetOOBB() { m_xmOOBBTransformed = m_xmOOBB; }
 	void UpdateBoundingBox();
 
-	void Awake();
+	void Awake() { m_bActive = true; };
 	void Sleep() { m_bActive = false; }
 	bool IsActive() const { return m_bActive; };
 
