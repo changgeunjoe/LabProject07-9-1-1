@@ -8,7 +8,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-CMaterialColors::CMaterialColors(MATERIALLOADINFO *pMaterialInfo)
+CMaterialColors::CMaterialColors(MATERIALLOADINFO* pMaterialInfo)
 {
 	m_xmf4Diffuse = pMaterialInfo->m_xmf4AlbedoColor;
 	m_xmf4Specular = pMaterialInfo->m_xmf4SpecularColor; //(r,g,b,a=power)
@@ -18,7 +18,7 @@ CMaterialColors::CMaterialColors(MATERIALLOADINFO *pMaterialInfo)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-CShader	*CMaterial::m_pIlluminatedShader = NULL;
+CShader* CMaterial::m_pIlluminatedShader = NULL;
 
 CMaterial::CMaterial()
 {
@@ -30,21 +30,21 @@ CMaterial::~CMaterial()
 	if (m_pMaterialColors) m_pMaterialColors->Release();
 }
 
-void CMaterial::SetShader(CShader *pShader)
+void CMaterial::SetShader(CShader* pShader)
 {
 	if (m_pShader) m_pShader->Release();
 	m_pShader = pShader;
 	if (m_pShader) m_pShader->AddRef();
 }
 
-void CMaterial::SetMaterialColors(CMaterialColors *pMaterialColors)
+void CMaterial::SetMaterialColors(CMaterialColors* pMaterialColors)
 {
 	if (m_pMaterialColors) m_pMaterialColors->Release();
 	m_pMaterialColors = pMaterialColors;
 	if (m_pMaterialColors) m_pMaterialColors->AddRef();
 }
 
-void CMaterial::UpdateShaderVariable(ID3D12GraphicsCommandList *pd3dCommandList)
+void CMaterial::UpdateShaderVariable(ID3D12GraphicsCommandList* pd3dCommandList)
 {
 	pd3dCommandList->SetGraphicsRoot32BitConstants(1, 4, &(m_pMaterialColors->m_xmf4Ambient), 16);
 	pd3dCommandList->SetGraphicsRoot32BitConstants(1, 4, &(m_pMaterialColors->m_xmf4Diffuse), 20);
@@ -52,7 +52,7 @@ void CMaterial::UpdateShaderVariable(ID3D12GraphicsCommandList *pd3dCommandList)
 	pd3dCommandList->SetGraphicsRoot32BitConstants(1, 4, &(m_pMaterialColors->m_xmf4Emissive), 28);
 }
 
-void CMaterial::PrepareShaders(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, ID3D12RootSignature *pd3dGraphicsRootSignature)
+void CMaterial::PrepareShaders(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature)
 {
 	m_pIlluminatedShader = new CIlluminatedShader();
 	m_pIlluminatedShader->CreateShader(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature);
@@ -66,7 +66,7 @@ CGameObject::CGameObject()
 	m_xmf4x4Transform = Matrix4x4::Identity();
 	m_xmf4x4World = Matrix4x4::Identity();
 	m_pCollider = NULL;
-	m_bActive = true;
+	m_bActive = false;
 }
 
 CGameObject::~CGameObject()
@@ -118,51 +118,57 @@ void CGameObject::SetChild(CGameObject* pChild, bool bReferenceUpdate)
 }
 
 void CGameObject::UpdateBoundingBox()
-{	
+{
 	//	XMStoreFloat4(&m_xmOOBB.Orientation, XMQuaternionNormalize(XMLoadFloat4(&m_xmOOBB.Orientation)));
 		//
 		//m_xmOOBB.Transform(m_xmOOBB, XMLoadFloat4x4(&m_xmf4x4Transform));
-		m_xmOOBB = BoundingOrientedBox(GetTransformPosition(), m_xmOOBB.Extents, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
-		XMStoreFloat4(&m_xmOOBB.Orientation, XMQuaternionNormalize(XMLoadFloat4(&m_xmOOBB.Orientation)));
+	m_xmOOBB = BoundingOrientedBox(GetTransformPosition(), m_xmOOBB.Extents, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	XMStoreFloat4(&m_xmOOBB.Orientation, XMQuaternionNormalize(XMLoadFloat4(&m_xmOOBB.Orientation)));
 }
 
-void CGameObject::SetMesh(CMesh *pMesh)
+void CGameObject::Awake()
+{
+	m_bActive = true;
+}
+
+void CGameObject::SetMesh(CMesh* pMesh)
 {
 	if (m_pMesh) m_pMesh->Release();
 	m_pMesh = pMesh;
 	if (m_pMesh) m_pMesh->AddRef();
 }
 
-void CGameObject::SetShader(CShader *pShader)
+void CGameObject::SetShader(CShader* pShader)
 {
 	m_nMaterials = 1;
-	m_ppMaterials = new CMaterial*[m_nMaterials];
+	m_ppMaterials = new CMaterial * [m_nMaterials];
 	m_ppMaterials[0] = new CMaterial();
 	m_ppMaterials[0]->SetShader(pShader);
 }
 
-void CGameObject::SetShader(int nMaterial, CShader *pShader)
+void CGameObject::SetShader(int nMaterial, CShader* pShader)
 {
 	if (m_ppMaterials[nMaterial]) m_ppMaterials[nMaterial]->SetShader(pShader);
 }
 
-void CGameObject::SetMaterial(int nMaterial, CMaterial *pMaterial)
+void CGameObject::SetMaterial(int nMaterial, CMaterial* pMaterial)
 {
 	if (m_ppMaterials[nMaterial]) m_ppMaterials[nMaterial]->Release();
 	m_ppMaterials[nMaterial] = pMaterial;
 	if (m_ppMaterials[nMaterial]) m_ppMaterials[nMaterial]->AddRef();
 }
 
-void CGameObject::Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent)
+void CGameObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
 {
 	if (m_pSibling) m_pSibling->Animate(fTimeElapsed, pxmf4x4Parent);
 	if (m_pChild) m_pChild->Animate(fTimeElapsed, &m_xmf4x4World);
 	UpdateBoundingBox();
 }
 
-CGameObject *CGameObject::FindFrame(const char *pstrFrameName)
+
+CGameObject* CGameObject::FindFrame(const char* pstrFrameName)
 {
-	CGameObject *pFrameObject = NULL;
+	CGameObject* pFrameObject = NULL;
 	if (!strncmp(m_pstrFrameName, pstrFrameName, strlen(pstrFrameName))) return(this);
 
 	if (m_pSibling) if (pFrameObject = m_pSibling->FindFrame(pstrFrameName)) return(pFrameObject);
@@ -171,7 +177,7 @@ CGameObject *CGameObject::FindFrame(const char *pstrFrameName)
 	return(NULL);
 }
 
-void CGameObject::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera)
+void CGameObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
 {
 	OnPrepareRender();
 
@@ -194,22 +200,22 @@ void CGameObject::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pC
 	if (m_pChild) m_pChild->Render(pd3dCommandList, pCamera);
 }
 
-void CGameObject::CreateShaderVariables(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList)
+void CGameObject::CreateShaderVariables(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList)
 {
 }
 
-void CGameObject::UpdateShaderVariables(ID3D12GraphicsCommandList *pd3dCommandList)
+void CGameObject::UpdateShaderVariables(ID3D12GraphicsCommandList* pd3dCommandList)
 {
 }
 
-void CGameObject::UpdateShaderVariable(ID3D12GraphicsCommandList *pd3dCommandList, XMFLOAT4X4 *pxmf4x4World)
+void CGameObject::UpdateShaderVariable(ID3D12GraphicsCommandList* pd3dCommandList, XMFLOAT4X4* pxmf4x4World)
 {
 	XMFLOAT4X4 xmf4x4World;
 	XMStoreFloat4x4(&xmf4x4World, XMMatrixTranspose(XMLoadFloat4x4(pxmf4x4World)));
 	pd3dCommandList->SetGraphicsRoot32BitConstants(1, 16, &xmf4x4World, 0);
 }
 
-void CGameObject::UpdateShaderVariable(ID3D12GraphicsCommandList *pd3dCommandList, CMaterial *pMaterial)
+void CGameObject::UpdateShaderVariable(ID3D12GraphicsCommandList* pd3dCommandList, CMaterial* pMaterial)
 {
 }
 
@@ -225,7 +231,7 @@ void CGameObject::ReleaseUploadBuffers()
 	if (m_pChild) m_pChild->ReleaseUploadBuffers();
 }
 
-void CGameObject::UpdateTransform(XMFLOAT4X4 *pxmf4x4Parent)
+void CGameObject::UpdateTransform(XMFLOAT4X4* pxmf4x4Parent)
 {
 	m_xmf4x4World = (pxmf4x4Parent) ? Matrix4x4::Multiply(m_xmf4x4Transform, *pxmf4x4Parent) : m_xmf4x4Transform;
 
@@ -241,7 +247,7 @@ void CGameObject::SetPosition(float x, float y, float z)
 
 	UpdateTransform(NULL);
 }
-void CGameObject::SetPositionZ( float z)
+void CGameObject::SetPositionZ(float z)
 {
 	m_xmf4x4Transform._43 = z;
 
@@ -309,6 +315,13 @@ void CGameObject::MoveForward(float fDistance)
 	xmf3Position = Vector3::Add(xmf3Position, xmf3Look, fDistance);
 	CGameObject::SetPosition(xmf3Position);
 }
+void CGameObject::Move(XMFLOAT3& vDirection, float fSpeed)
+{
+	
+	m_xmf4x4World._41=m_xmf4x4World._41 + vDirection.x * fSpeed;
+	m_xmf4x4World._42=m_xmf4x4World._42 + vDirection.y * fSpeed;
+	m_xmf4x4World._43=m_xmf4x4World._43 + vDirection.z * fSpeed;
+}
 
 void CGameObject::Rotate(float fPitch, float fYaw, float fRoll)
 {
@@ -318,7 +331,7 @@ void CGameObject::Rotate(float fPitch, float fYaw, float fRoll)
 	UpdateTransform(NULL);
 }
 
-void CGameObject::Rotate(XMFLOAT3 *pxmf3Axis, float fAngle)
+void CGameObject::Rotate(XMFLOAT3* pxmf3Axis, float fAngle)
 {
 	XMMATRIX mtxRotate = XMMatrixRotationAxis(XMLoadFloat3(pxmf3Axis), XMConvertToRadians(fAngle));
 	m_xmf4x4Transform = Matrix4x4::Multiply(mtxRotate, m_xmf4x4Transform);
@@ -326,7 +339,7 @@ void CGameObject::Rotate(XMFLOAT3 *pxmf3Axis, float fAngle)
 	UpdateTransform(NULL);
 }
 
-void CGameObject::Rotate(XMFLOAT4 *pxmf4Quaternion)
+void CGameObject::Rotate(XMFLOAT4* pxmf4Quaternion)
 {
 	XMMATRIX mtxRotate = XMMatrixRotationQuaternion(XMLoadFloat4(pxmf4Quaternion));
 	m_xmf4x4Transform = Matrix4x4::Multiply(mtxRotate, m_xmf4x4Transform);
@@ -363,19 +376,19 @@ BYTE ReadStringFromFile(FILE* pInFile, char* pstrToken)
 
 #define _WITH_DEBUG_FRAME_HIERARCHY
 
-CMeshLoadInfo *CGameObject::LoadMeshInfoFromFile(FILE *pInFile)
+CMeshLoadInfo* CGameObject::LoadMeshInfoFromFile(FILE* pInFile)
 {
 	char pstrToken[64] = { '\0' };
 	UINT nReads = 0;
 
 	int nPositions = 0, nColors = 0, nNormals = 0, nIndices = 0, nSubMeshes = 0, nSubIndices = 0;
 
-	CMeshLoadInfo *pMeshInfo = new CMeshLoadInfo;
+	CMeshLoadInfo* pMeshInfo = new CMeshLoadInfo;
 
 	pMeshInfo->m_nVertices = ::ReadIntegerFromFile(pInFile);
 	::ReadStringFromFile(pInFile, pMeshInfo->m_pstrMeshName);
 
-	for ( ; ; )
+	for (; ; )
 	{
 		::ReadStringFromFile(pInFile, pstrToken);
 
@@ -429,7 +442,7 @@ CMeshLoadInfo *CGameObject::LoadMeshInfoFromFile(FILE *pInFile)
 			if (pMeshInfo->m_nSubMeshes > 0)
 			{
 				pMeshInfo->m_pnSubSetIndices = new int[pMeshInfo->m_nSubMeshes];
-				pMeshInfo->m_ppnSubSetIndices = new UINT*[pMeshInfo->m_nSubMeshes];
+				pMeshInfo->m_ppnSubSetIndices = new UINT * [pMeshInfo->m_nSubMeshes];
 				for (int i = 0; i < pMeshInfo->m_nSubMeshes; i++)
 				{
 					::ReadStringFromFile(pInFile, pstrToken);
@@ -459,19 +472,19 @@ CMeshLoadInfo *CGameObject::LoadMeshInfoFromFile(FILE *pInFile)
 	return(pMeshInfo);
 }
 
-MATERIALSLOADINFO *CGameObject::LoadMaterialsInfoFromFile(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, FILE *pInFile)
+MATERIALSLOADINFO* CGameObject::LoadMaterialsInfoFromFile(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, FILE* pInFile)
 {
 	char pstrToken[64] = { '\0' };
 	UINT nReads = 0;
 
 	int nMaterial = 0;
 
-	MATERIALSLOADINFO *pMaterialsInfo = new MATERIALSLOADINFO;
+	MATERIALSLOADINFO* pMaterialsInfo = new MATERIALSLOADINFO;
 
 	pMaterialsInfo->m_nMaterials = ::ReadIntegerFromFile(pInFile);
 	pMaterialsInfo->m_pMaterials = new MATERIALLOADINFO[pMaterialsInfo->m_nMaterials];
 
-	for ( ; ; )
+	for (; ; )
 	{
 		::ReadStringFromFile(pInFile, pstrToken);
 
@@ -519,7 +532,7 @@ MATERIALSLOADINFO *CGameObject::LoadMaterialsInfoFromFile(ID3D12Device *pd3dDevi
 	return(pMaterialsInfo);
 }
 
-CGameObject *CGameObject::LoadFrameHierarchyFromFile(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, ID3D12RootSignature *pd3dGraphicsRootSignature, FILE *pInFile)
+CGameObject* CGameObject::LoadFrameHierarchyFromFile(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, FILE* pInFile)
 {
 	char pstrToken[64] = { '\0' };
 	UINT nReads = 0;
@@ -528,7 +541,7 @@ CGameObject *CGameObject::LoadFrameHierarchyFromFile(ID3D12Device *pd3dDevice, I
 
 	CGameObject* pGameObject = NULL;
 
-	for ( ; ; )
+	for (; ; )
 	{
 		::ReadStringFromFile(pInFile, pstrToken);
 		if (!strcmp(pstrToken, "<Frame>:"))
@@ -553,10 +566,10 @@ CGameObject *CGameObject::LoadFrameHierarchyFromFile(ID3D12Device *pd3dDevice, I
 		}
 		else if (!strcmp(pstrToken, "<Mesh>:"))
 		{
-			CMeshLoadInfo *pMeshInfo = pGameObject->LoadMeshInfoFromFile(pInFile);
+			CMeshLoadInfo* pMeshInfo = pGameObject->LoadMeshInfoFromFile(pInFile);
 			if (pMeshInfo)
 			{
-				CMesh *pMesh = NULL;
+				CMesh* pMesh = NULL;
 				if (pMeshInfo->m_nType & VERTEXT_NORMAL)
 				{
 					pMesh = new CMeshIlluminatedFromFile(pd3dDevice, pd3dCommandList, pMeshInfo);
@@ -567,19 +580,19 @@ CGameObject *CGameObject::LoadFrameHierarchyFromFile(ID3D12Device *pd3dDevice, I
 		}
 		else if (!strcmp(pstrToken, "<Materials>:"))
 		{
-			MATERIALSLOADINFO *pMaterialsInfo = pGameObject->LoadMaterialsInfoFromFile(pd3dDevice, pd3dCommandList, pInFile);
+			MATERIALSLOADINFO* pMaterialsInfo = pGameObject->LoadMaterialsInfoFromFile(pd3dDevice, pd3dCommandList, pInFile);
 			if (pMaterialsInfo && (pMaterialsInfo->m_nMaterials > 0))
 			{
 				pGameObject->m_nMaterials = pMaterialsInfo->m_nMaterials;
-				pGameObject->m_ppMaterials = new CMaterial*[pMaterialsInfo->m_nMaterials];
+				pGameObject->m_ppMaterials = new CMaterial * [pMaterialsInfo->m_nMaterials];
 
 				for (int i = 0; i < pMaterialsInfo->m_nMaterials; i++)
 				{
 					pGameObject->m_ppMaterials[i] = NULL;
 
-					CMaterial *pMaterial = new CMaterial();
+					CMaterial* pMaterial = new CMaterial();
 
-					CMaterialColors *pMaterialColors = new CMaterialColors(&pMaterialsInfo->m_pMaterials[i]);
+					CMaterialColors* pMaterialColors = new CMaterialColors(&pMaterialsInfo->m_pMaterials[i]);
 					pMaterial->SetMaterialColors(pMaterialColors);
 
 					if (pGameObject->GetMeshType() & VERTEXT_NORMAL) pMaterial->SetIlluminatedShader();
@@ -595,7 +608,7 @@ CGameObject *CGameObject::LoadFrameHierarchyFromFile(ID3D12Device *pd3dDevice, I
 			{
 				for (int i = 0; i < nChilds; i++)
 				{
-					CGameObject *pChild = CGameObject::LoadFrameHierarchyFromFile(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature, pInFile);
+					CGameObject* pChild = CGameObject::LoadFrameHierarchyFromFile(pd3dDevice, pd3dCommandList, pd3dGraphicsRootSignature, pInFile);
 					if (pChild) pGameObject->SetChild(pChild);
 #ifdef _WITH_DEBUG_RUNTIME_FRAME_HIERARCHY
 					TCHAR pstrDebug[256] = { 0 };
@@ -613,7 +626,7 @@ CGameObject *CGameObject::LoadFrameHierarchyFromFile(ID3D12Device *pd3dDevice, I
 	return(pGameObject);
 }
 
-void CGameObject::PrintFrameInfo(CGameObject *pGameObject, CGameObject *pParent)
+void CGameObject::PrintFrameInfo(CGameObject* pGameObject, CGameObject* pParent)
 {
 	TCHAR pstrDebug[256] = { 0 };
 
@@ -624,16 +637,16 @@ void CGameObject::PrintFrameInfo(CGameObject *pGameObject, CGameObject *pParent)
 	if (pGameObject->m_pChild) CGameObject::PrintFrameInfo(pGameObject->m_pChild, pGameObject);
 }
 
-CGameObject *CGameObject::LoadGeometryFromFile(ID3D12Device *pd3dDevice, ID3D12GraphicsCommandList *pd3dCommandList, ID3D12RootSignature *pd3dGraphicsRootSignature, const char *pstrFileName)
+CGameObject* CGameObject::LoadGeometryFromFile(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* pd3dCommandList, ID3D12RootSignature* pd3dGraphicsRootSignature, const char* pstrFileName)
 {
-	FILE *pInFile = NULL;
+	FILE* pInFile = NULL;
 	::fopen_s(&pInFile, pstrFileName, "rb");
 	::rewind(pInFile);
 
-	CGameObject *pGameObject = NULL;
+	CGameObject* pGameObject = NULL;
 	char pstrToken[64] = { '\0' };
 
-	for ( ; ; )
+	for (; ; )
 	{
 		::ReadStringFromFile(pInFile, pstrToken);
 
@@ -670,14 +683,14 @@ CRotatingObject::~CRotatingObject()
 {
 }
 
-void CRotatingObject::Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent)
+void CRotatingObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
 {
 	CGameObject::Rotate(&m_xmf3RotationAxis, m_fRotationSpeed * fTimeElapsed);
 
 	CGameObject::Animate(fTimeElapsed, pxmf4x4Parent);
 }
 
-void CRotatingObject::Render(ID3D12GraphicsCommandList *pd3dCommandList, CCamera *pCamera)
+void CRotatingObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
 {
 	CGameObject::Render(pd3dCommandList, pCamera);
 }
@@ -694,7 +707,7 @@ CRevolvingObject::~CRevolvingObject()
 {
 }
 
-void CRevolvingObject::Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent)
+void CRevolvingObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
 {
 	XMMATRIX mtxRotate = XMMatrixRotationAxis(XMLoadFloat3(&m_xmf3RevolutionAxis), XMConvertToRadians(m_fRevolutionSpeed * fTimeElapsed));
 	m_xmf4x4Transform = Matrix4x4::Multiply(m_xmf4x4Transform, mtxRotate);
@@ -716,7 +729,7 @@ void CHellicopterObject::OnInitialize()
 {
 }
 
-void CHellicopterObject::Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent)
+void CHellicopterObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
 {
 	if (m_pMainRotorFrame)
 	{
@@ -748,7 +761,7 @@ void CApacheObject::OnInitialize()
 	m_pTailRotorFrame = FindFrame("black_m_7");
 }
 
-void CApacheObject::Animate(float fTimeElapsed, XMFLOAT4X4 *pxmf4x4Parent)
+void CApacheObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
 {
 	if (m_pMainRotorFrame)
 	{
@@ -893,3 +906,31 @@ XMVECTOR RandomUnitVectorOnSphere()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+
+CParticleObject::CParticleObject()
+{
+	m_xmf3MovingDirection=XMFLOAT3(0.0f,0.0f,0.0f);
+	m_fMovingSpeed=0;
+	m_fMovingRange=0;
+
+	m_xmf3RotationAxis=XMFLOAT3(0.0f, 0.0f, 0.0f);;
+	m_fRotationSpeed=0;
+	m_bActive = false;
+}
+
+CParticleObject::~CParticleObject()
+{
+}
+
+void CParticleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
+{
+	if (m_fRotationSpeed != 0.0f)
+		Rotate(&m_xmf3RotationAxis, m_fRotationSpeed * fTimeElapsed);
+	if (m_fMovingSpeed != 0.0f)
+		Move(m_xmf3MovingDirection, m_fMovingSpeed * fTimeElapsed);
+	CGameObject::Animate(fTimeElapsed, pxmf4x4Parent);
+}
+
+void CParticleObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
+{
+}
