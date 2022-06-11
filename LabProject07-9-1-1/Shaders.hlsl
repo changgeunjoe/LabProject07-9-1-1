@@ -15,7 +15,7 @@ cbuffer cbCameraInfo : register(b1)
 
 cbuffer cbGameObjectInfo : register(b2)
 {
-	matrix					gmtxGameObject : packoffset(c0);
+    matrix					gmtxWorld : packoffset(c0);
 	MATERIAL				gMaterial : packoffset(c4);
 };
 
@@ -46,8 +46,8 @@ VS_LIGHTING_OUTPUT VSLighting(VS_LIGHTING_INPUT input)
 {
 	VS_LIGHTING_OUTPUT output;
 
-	output.normalW = mul(input.normal, (float3x3)gmtxGameObject);
-	output.positionW = (float3)mul(float4(input.position, 1.0f), gmtxGameObject);
+    output.normalW = mul(input.normal, (float3x3) gmtxWorld);
+    output.positionW = (float3) mul(float4(input.position, 1.0f), gmtxWorld);
 	output.position = mul(mul(float4(output.positionW, 1.0f), gmtxView), gmtxProjection);
 #ifdef _WITH_VERTEX_LIGHTING
 	output.normalW = normalize(output.normalW);
@@ -67,4 +67,28 @@ float4 PSLighting(VS_LIGHTING_OUTPUT input) : SV_TARGET
 	return(color);
 #endif
 }
+struct VS_INPUT
+{
+    float3 position : POSITION;
+    float4 color : COLOR;
+};
 
+struct VS_OUTPUT
+{
+    float4 position : SV_POSITION;
+    float4 color : COLOR;
+};
+VS_OUTPUT VSDiffused(VS_INPUT input)
+{
+    VS_OUTPUT output;
+
+    output.position = mul(mul(mul(float4(input.position, 1.0f), gmtxWorld), gmtxView),
+    gmtxProjection);
+    output.color = input.color;
+    return (output);
+}
+
+float4 PSDiffused(VS_OUTPUT input) : SV_TARGET
+{
+    return (input.color);
+}

@@ -70,7 +70,7 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 
 	BuildDefaultLightsAndMaterials();
 
-	m_nGameObjects = 65;
+	m_nGameObjects = 1;
 	m_ppGameObjects = new CGameObject * [m_nGameObjects];
 	m_pParticleModel= CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/TREE.bin");
 	CGameObject* pApacheModel = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/TREE.bin");
@@ -78,131 +78,37 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	//pApacheModel->m_pMesh->Set_xmBoundingBox()
 	//pApacheModel->SetOOBB(CMesh);
 	CApacheObject* pApacheObject = NULL;
-	for (int i = 0; i < 60; i++) {
-		pApacheObject = new CApacheObject();
-		pApacheObject->SetChild(pApacheModel, true);
-
-		pApacheObject->OnInitialize();
-		if (i < 30)
-			pApacheObject->SetPosition(-100.0f, 0.0f, -200.0f - (i - 30) * 50);
-
-		else
-			pApacheObject->SetPosition(100.0f, 0.0f, -200.0f + (i - 30) * 50);
-		pApacheObject->SetScale(5.0f, 5.0f, 5.0f);
-		pApacheObject->Rotate(0.0f, 90.0f, 0.0f);
-		pApacheObject->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(5.0f, 5.0f, 5.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
-		pApacheObject->SetOOBB();
-		m_ppGameObjects[i] = pApacheObject;
-	}
-	CGameObject* pOldCarModel = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/OldCar.bin");
-	CGunshipObject* pGunshipObject = NULL;
 	pApacheObject = new CApacheObject();
-	pApacheObject->SetChild(pOldCarModel, true);
+	pApacheObject->SetChild(pApacheModel, true);
+
 	pApacheObject->OnInitialize();
-	pApacheObject->SetPosition(-75.0f, 0.0f, 80.0f);
+	pApacheObject->SetPosition(-100.0f, 0.0f, -200.0f - 50);
 	pApacheObject->SetScale(5.0f, 5.0f, 5.0f);
-	pApacheObject->Rotate(0.0f, 0.0f, 0.0f);
-	pApacheObject->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(5.0f, 5.0f, 7.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
-	pApacheObject->SetOOBB();
-	m_ppGameObjects[60] = pApacheObject;
-
-	pApacheObject = new CApacheObject();
-	pApacheObject->SetChild(pOldCarModel, true);
-	pApacheObject->OnInitialize();
-	pApacheObject->SetPosition(-35.0f, 0.0f, 80.0f);
-	pApacheObject->SetScale(5.0f, 5.0f, 5.0f);
-	pApacheObject->Rotate(0.0f, 0.0f, 0.0f);
-
-	m_ppGameObjects[61] = pApacheObject;
-	m_ppGameObjects[61]->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(5.0f, 5.0f, 7.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
-	pApacheObject->SetOOBB();
-
-	pApacheObject = new CApacheObject();
-	pApacheObject->SetChild(pOldCarModel, true);
-	pApacheObject->OnInitialize();
-	pApacheObject->SetPosition(-0.0f, 0.0f, 80.0f);
-	pApacheObject->SetScale(5.0f, 5.0f, 5.0f);
-	pApacheObject->Rotate(0.0f, 0.0f, 0.0f);
-
-	m_ppGameObjects[62] = pApacheObject;
-	m_ppGameObjects[62]->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(5.0f, 5.0f, 7.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
-	pApacheObject->SetOOBB();
-
-
-	pApacheObject = new CApacheObject();
-	pApacheObject->SetChild(pOldCarModel, true);
-	pApacheObject->OnInitialize();
-	pApacheObject->SetPosition(35.0f, 0.0f, 80.0f);
-	pApacheObject->SetScale(5.0f, 5.0f, 5.0f);
-	pApacheObject->Rotate(0.0f, 0.0f, 0.0f);
-	m_ppGameObjects[63] = pApacheObject;
-	m_ppGameObjects[63]->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(5.0f, 5.0f, 7.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
-	pApacheObject->SetOOBB();
-
-	pApacheObject = new CApacheObject();
-	pApacheObject->SetChild(pOldCarModel, true);
-	pApacheObject->OnInitialize();
-	pApacheObject->SetPosition(70.0f, 0.0f, 80.0f);
-	pApacheObject->SetScale(5.0f, 5.0f, 5.0f);
-	pApacheObject->Rotate(0.0f, 0.0f, 0.0f);
-	m_ppGameObjects[64] = pApacheObject;
-	m_ppGameObjects[64]->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(5.0f, 5.0f, 7.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
-	pApacheObject->SetOOBB();
-
-	Particles(XMFLOAT3(0.0f, 0.0f, 0.0f), 20);
-	/*m_ppGameParticleObjects = new CParticleObject * [m_nGameParticleObjects];
-	CParticleObject* pParticleObject = NULL;
-
-	pParticleObject = new CParticleObject();
-	pParticleObject->SetChild(m_pParticleModel, true);
-	pParticleObject->OnInitialize();
-	pParticleObject->SetPosition(35.0f, 0.0f, 80.0f);
-	pParticleObject->SetScale(5.0f, 5.0f, 5.0f);
-	pParticleObject->Rotate(0.0f, 0.0f, 0.0f);
-	m_ppGameParticleObjects[0] = pParticleObject;*/
-	//m_ppGameObjects[63]->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(5.0f, 5.0f, 7.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
-	//pApacheObject->SetOOBB();
-
-	//Particles(XMFLOAT3(0.0f,0.0f,0.0f), 1);
-
-
-	//pApacheObject = new CApacheObject();
-	//pApacheObject->SetChild(pOldCarModel, true);
-	//pApacheObject->OnInitialize();
-	//pApacheObject->SetPosition(75.0f, 0.0f, 80.0f);
-	//pApacheObject->SetScale(5.0f, 5.0f, 5.0f);
-	//pApacheObject->Rotate(0.0f, 0.0f, 0.0f);
-	//m_ppGameObjects[64] = pApacheObject;
-	//m_ppGameObjects[64]->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(5.0f, 5.0f, 7.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
-	//pApacheObject->SetOOBB();
-
+	pApacheObject->Rotate(0.0f, 90.0f, 0.0f);
+	m_ppGameObjects[0] = pApacheObject;
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 
-	/*m_pShaders[ObjectTag::Particle].CreateShader(pd3dDevice, m_pd3dGraphicsRootSignature);
-	m_pnObjects[ObjectTag::Particle] = 500;
-	m_pppObjects[ObjectTag::Particle] =
-		new CGameObject * [m_pnObjects[ObjectTag::Particle]];
-	CCubeMeshDiffused* pParticleMeshs =
-		new CCubeMeshDiffused(pd3dDevice, pd3dCommandList, 1.0f, 1.0f, 1.0f);
-	for (int i = 0; i < m_pnObjects[ObjectTag::Particle]; ++i)
-	{
-		CRotatingObject* Cube = new CRotatingObject();
-		Cube->SetObjectType(CGameObject::ObjectType::Particle);
-		Cube->SetPosition(0.0f, 100.0f, 0.0f);
-		Cube->SetOOBB(pParticleMeshs->GetBoundingBox());
-		Cube->SetRotationAxis(XMFLOAT3(
-			(float)RANDOM_NUM(-1000, 1000),
-			(float)RANDOM_NUM(-1000, 1000),
-			(float)RANDOM_NUM(-1000, 1000)));
-		Cube->SetRotationSpeed((float)RANDOM_NUM(50, 100));
-		Cube->SetMovingSpeed(100.0f);
-		Cube->Sleep();
-		m_pppObjects[ObjectTag::Particle][i] = Cube;
-	}
-	m_pppObjects[ObjectTag::Particle][0]->SetMesh(pParticleMeshs);
-	m_pShaders[ObjectTag::Particle].BuildObjects(
-		pd3dDevice, pd3dCommandList,
-		m_pppObjects[ObjectTag::Particle], m_pnObjects[ObjectTag::Particle]);*/
+	// 지형을 확대할 스케일 벡터이다.x - 축과 z - 축은 8배, y - 축은 2배 확대한다.
+	XMFLOAT3 xmf3Scale(8.0f, 2.0f, 8.0f);
+	XMFLOAT4 xmf4Color(0.0f, 0.2f, 0.0f, 0.0f);
+	//지형을 높이 맵 이미지 파일(HeightMap.raw)을 사용하여 생성한다. 높이 맵의 크기는 가로x세로(257x257)이다. 
+#ifdef _WITH_TERRAIN_PARTITION
+	/*하나의 격자 메쉬의 크기는 가로x세로(17x17)이다. 지형 전체는 가로 방향으로 16개, 세로 방향으로 16의 격자 메
+	쉬를 가진다. 지형을 구성하는 격자 메쉬의 개수는 총 256(16x16)개가 된다.*/
+	m_pTerrain = new CHeightMapTerrain(pd3dDevice, pd3dCommandList,
+		m_pd3dGraphicsRootSignature, _T("Model/HeightMap.raw"), 257, 257, 17,
+		17, xmf3Scale, xmf4Color);
+#else
+//지형을 하나의 격자 메쉬(257x257)로 생성한다. 
+	m_pTerrain = new CHeightMapTerrain(pd3dDevice, pd3dCommandList, 
+	m_pd3dGraphicsRootSignature, _T("Model/HeightMap.raw"), 257, 257, 257,
+	257, xmf3Scale, xmf4Color);
+#endif
+	//m_nShaders = 1;
+	//m_pShaders = new CObjectsShader[m_nShaders];
+	//m_pShaders[0].CreateShader(pd3dDevice, m_pd3dGraphicsRootSignature);
+	//m_pShaders[0].BuildObjects(pd3dDevice, pd3dCommandList, m_pTerrain);
+
 }
 
 void CScene::ReleaseObjects()
@@ -221,8 +127,16 @@ void CScene::ReleaseObjects()
 	}
 
 	ReleaseShaderVariables();
+	/*for (int i = 0; i < m_nShaders; i++)
+	{
+		m_pShaders[i].ReleaseShaderVariables();
+		m_pShaders[i].ReleaseObjects();
+	}*/
+	if (m_pShaders) delete[] m_pShaders;
 
 	if (m_pLights) delete[] m_pLights;
+
+	if (m_pTerrain) delete m_pTerrain;
 }
 
 ID3D12RootSignature* CScene::CreateGraphicsRootSignature(ID3D12Device* pd3dDevice)
@@ -246,6 +160,8 @@ ID3D12RootSignature* CScene::CreateGraphicsRootSignature(ID3D12Device* pd3dDevic
 	pd3dRootParameters[2].Descriptor.ShaderRegister = 4; //Lights
 	pd3dRootParameters[2].Descriptor.RegisterSpace = 0;
 	pd3dRootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+
+	
 
 	D3D12_ROOT_SIGNATURE_FLAGS d3dRootSignatureFlags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS | D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
 	D3D12_ROOT_SIGNATURE_DESC d3dRootSignatureDesc;
@@ -293,6 +209,8 @@ void CScene::ReleaseShaderVariables()
 void CScene::ReleaseUploadBuffers()
 {
 	for (int i = 0; i < m_nGameObjects; i++) m_ppGameObjects[i]->ReleaseUploadBuffers();
+	if (m_pTerrain) m_pTerrain->ReleaseUploadBuffers();
+	//for (int i = 0; i < m_nShaders; i++) m_pShaders[i].ReleaseUploadBuffers();
 	//for (int i = 0; i < m_nGameParticleObjects; i++) m_ppGameParticleObjects[i]->ReleaseUploadBuffers();
 }
 
@@ -344,16 +262,16 @@ void CScene::AnimateObjects(float fTimeElapsed)
 			m_pPlayer->Reset();
 		}
 	}
-		for (int i = 60; i < 65; i++)
-		{
-			if (m_ppGameObjects[i]->GetPosition().z < -40.0f)
-			{
-				m_ppGameObjects[i]->SetPositionZ(RANDOM_NUM(400, 700));
-			}
-			m_ppGameObjects[i]->MoveForward(-0.2f);
-			//m_ppGameObjects[i]->m_xmOOBB = BoundingOrientedBox(m_ppGameObjects[i]->GetPosition(), m_ppGameObjects[i]->m_xmOOBB.Extents, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
-		}
-		for (int i = 60; i < m_nGameObjects; i++) m_ppGameObjects[i]->Animate(fTimeElapsed, NULL);
+		//for (int i = 60; i < 65; i++)
+		//{
+		//	if (m_ppGameObjects[i]->GetPosition().z < -40.0f)
+		//	{
+		//		m_ppGameObjects[i]->SetPositionZ(RANDOM_NUM(400, 700));
+		//	}
+		//	m_ppGameObjects[i]->MoveForward(-0.2f);
+		//	//m_ppGameObjects[i]->m_xmOOBB = BoundingOrientedBox(m_ppGameObjects[i]->GetPosition(), m_ppGameObjects[i]->m_xmOOBB.Extents, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+		//}
+	/*	for (int i = 60; i < m_nGameObjects; i++) m_ppGameObjects[i]->Animate(fTimeElapsed, NULL);*/
 		/*for (int i = 0; i < m_nGameParticleObjects; i++)
 		{
 			if (m_ppGameParticleObjects[i]->IsActive())
@@ -395,7 +313,7 @@ void CScene::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera
 			m_ppGameObjects[i]->Render(pd3dCommandList, pCamera);
 		}
 	}
-	for (int i = 0; i < m_nGameParticleObjects; i++)
+	/*for (int i = 0; i < m_nGameParticleObjects; i++)
 	{
 		if (m_ppGameParticleObjects[i]&& m_bGameOver)
 		{
@@ -403,33 +321,37 @@ void CScene::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera
 			m_ppGameParticleObjects[i]->UpdateTransform(NULL);
 			m_ppGameParticleObjects[i]->Render(pd3dCommandList, pCamera);
 		}
-	}
-	
+	}*/
+	if (m_pTerrain) m_pTerrain->Render(pd3dCommandList, pCamera);
+	/*for (int i = 0; i < m_nShaders; i++)
+	{
+		m_pShaders[i].Render(pd3dCommandList, pCamera);
+	}*/
 }
 
 void CScene::CheckObjectByWallCollision()
 {
-	for (int i = 0; i < m_nGameObjects; i++)
-	{
-		BoundingOrientedBox wmPlayerOOBB = m_pPlayer->m_xmOOBB;
-		ContainmentType containType = m_ppGameObjects[i]->m_xmOOBB.Contains(wmPlayerOOBB);
-		
-		if (m_ppGameObjects[i]->m_xmOOBB.Intersects(wmPlayerOOBB))
-		{
-			XMFLOAT3 CameraPosition= m_pPlayer->GetCamera()->GetPosition();
-			m_bGameOver=true;
-			//m_pPlayer->Release();
-		for (int i = 0; i < m_nGameParticleObjects; i++)
-		{
-			m_ppGameParticleObjects[i]->SetMovingSpeed(20.0f);
-			m_ppGameParticleObjects[i]->SetPosition(m_pPlayer->GetPosition());
-		}
-	//	m_pPlayer->SetPosition(XMFLOAT3(50.0f, 500.0f, 0.0f));
-	//m_pPlayer->GetCamera()->SetPosition(CameraPosition);
-		}
-		//else
-			//m_pPlayer->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
-	}
+	//for (int i = 0; i < m_nGameObjects; i++)
+	//{
+	//	BoundingOrientedBox wmPlayerOOBB = m_pPlayer->m_xmOOBB;
+	//	ContainmentType containType = m_ppGameObjects[i]->m_xmOOBB.Contains(wmPlayerOOBB);
+	//	
+	//	if (m_ppGameObjects[i]->m_xmOOBB.Intersects(wmPlayerOOBB))
+	//	{
+	//		XMFLOAT3 CameraPosition= m_pPlayer->GetCamera()->GetPosition();
+	//		m_bGameOver=true;
+	//		//m_pPlayer->Release();
+	//	for (int i = 0; i < m_nGameParticleObjects; i++)
+	//	{
+	//		m_ppGameParticleObjects[i]->SetMovingSpeed(20.0f);
+	//		m_ppGameParticleObjects[i]->SetPosition(m_pPlayer->GetPosition());
+	//	}
+	////	m_pPlayer->SetPosition(XMFLOAT3(50.0f, 500.0f, 0.0f));
+	////m_pPlayer->GetCamera()->SetPosition(CameraPosition);
+	//	}
+	//	//else
+	//		//m_pPlayer->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
+	//}
 
 }
 

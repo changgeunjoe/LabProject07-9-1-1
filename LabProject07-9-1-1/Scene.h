@@ -94,4 +94,12 @@ public:
 	bool				m_bGameOver = false;
 	float				m_fRestartCounter = 0.0f;
 
+	CObjectsShader* m_pShaders = NULL;
+	int m_nShaders = 0;
+
+protected:
+	CHeightMapTerrain* m_pTerrain = NULL;
+public:
+	CHeightMapTerrain* GetTerrain() { return(m_pTerrain); }
+
 };
