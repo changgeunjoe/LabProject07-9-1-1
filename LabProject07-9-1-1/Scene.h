@@ -66,6 +66,7 @@ public:
 	void ReleaseUploadBuffers();
 
 	void Particles(XMFLOAT3 pos, int nParticles);
+	void Missiles(XMFLOAT3 position, int apachobjects,XMFLOAT3 ObjectLookVector);
 
 
 	CPlayer* m_pPlayer = NULL;
@@ -79,6 +80,8 @@ public:
 	int							m_nGameParticleObjects = 0;
 	CRotatingObject		**m_pprotateGameObject = NULL;
 
+	CMissileObject ** m_ppGameMissileObjects = NULL;
+	int					m_nGameMissileObjects = 4;
 	LIGHT* m_pLights = NULL;
 	int							m_nLights = 0;
 
@@ -88,9 +91,11 @@ public:
 	LIGHTS* m_pcbMappedLights = NULL;
 
 	CGameObject* m_pParticleModel = NULL;
+	CGameObject* m_pMissileObject = NULL;
 
 	float						m_fElapsedTime = 0.0f;
-
+	
+	bool				m_bMissileon = false;
 	bool				m_bGameOver = false;
 	float				m_fRestartCounter = 0.0f;
 

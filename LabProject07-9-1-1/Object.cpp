@@ -169,10 +169,15 @@ void CGameObject::SetMesh(int nIndex, CMesh* pMesh)
 
 void CGameObject::SetShader(CShader* pShader)
 {
+	
 	m_nMaterials = 1;
 	m_ppMaterials = new CMaterial * [m_nMaterials];
 	m_ppMaterials[0] = new CMaterial();
+	m_ppMaterials[0]->m_nMaterialsCheck = false;
 	m_ppMaterials[0]->SetShader(pShader);
+	//if (m_pShader) m_pShader->Release();
+	//m_pShader = pShader;
+	//if (m_pShader) m_pShader->AddRef();
 }
 
 void CGameObject::SetShader(int nMaterial, CShader* pShader)
@@ -220,7 +225,9 @@ void CGameObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pC
 			if (m_ppMaterials[i])
 			{
 				if (m_ppMaterials[i]->m_pShader) m_ppMaterials[i]->m_pShader->Render(pd3dCommandList, pCamera);
-				m_ppMaterials[i]->UpdateShaderVariable(pd3dCommandList);
+				if (m_ppMaterials[i]->m_nMaterialsCheck != false) {
+					m_ppMaterials[i]->UpdateShaderVariable(pd3dCommandList);
+				}
 			}
 
 			if (m_pMesh) m_pMesh->Render(pd3dCommandList, i);
@@ -1033,4 +1040,41 @@ void CParticleObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
 void CParticleObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
 {
 	CGameObject::Render(pd3dCommandList, pCamera);
+}
+
+CMissileObject::CMissileObject()
+{
+	m_xmf3MovingDirection = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	m_fMovingSpeed = 0;
+	m_fMovingRange = 0;
+
+	m_xmf3RotationAxis = XMFLOAT3(0.0f, 0.0f, 0.0f);;
+	m_fRotationSpeed = 0;
+	m_bActive = true;
+}
+
+CMissileObject::~CMissileObject()
+{
+}
+
+void CMissileObject::Animate(float fElapsedTime, XMFLOAT4X4* pxmf4x4Parent)
+{
+	if (m_fMovingSpeed != 0.0f)
+		Move(m_xmf3MovingDirection, m_fMovingSpeed * fElapsedTime);
+	CGameObject::Animate(fElapsedTime, pxmf4x4Parent);
+}
+
+void CMissileObject::SetFirePosition(XMFLOAT3 xmf3FirePosition)
+{
+	m_xmf3FirePosition = xmf3FirePosition;
+	SetPosition(xmf3FirePosition);
+}
+
+void CMissileObject::Reset()
+{
+	m_pLockedObject = NULL;
+	m_fElapsedTimeAfterFire = 0;
+	m_fMovingDistance = 0;
+	m_fRotationAngle = 0.0f;
+	m_bActive = false;
 }

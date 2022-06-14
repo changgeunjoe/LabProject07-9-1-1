@@ -303,7 +303,7 @@ void CGameFramework::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM
 
 void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
-	//if (m_pScene) m_pScene->OnProcessingKeyboardMessage(hWnd, nMessageID, wParam, lParam);
+	if (m_pScene) m_pScene->OnProcessingKeyboardMessage(hWnd, nMessageID, wParam, lParam);
 	switch (nMessageID)
 	{
 		case WM_KEYUP:
@@ -408,7 +408,7 @@ void CGameFramework::BuildObjects()
 	m_pScene = new CScene();
 	if (m_pScene) m_pScene->BuildObjects(m_pd3dDevice, m_pd3dCommandList);
 
-	CAirplanePlayer *pAirplanePlayer = new CAirplanePlayer(m_pd3dDevice, m_pd3dCommandList, m_pScene->GetGraphicsRootSignature());
+	CAirplanePlayer *pAirplanePlayer = new CAirplanePlayer(m_pd3dDevice, m_pd3dCommandList, m_pScene->GetGraphicsRootSignature(), m_pScene->GetTerrain());
 	pAirplanePlayer->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
 	m_pScene->m_pPlayer = m_pPlayer = pAirplanePlayer;
 	m_pCamera = m_pPlayer->GetCamera();
@@ -473,7 +473,7 @@ void CGameFramework::ProcessInput()
 			
 			
 			if (pKeysBuffer[VK_SPACE] & 0xF0)m_pPlayer->Move(XMFLOAT3(0, 0, 1));
-			
+			if (pKeysBuffer['E'] & 0xF0) m_pPlayer->Move(XMFLOAT3(0, 1, 0));
 			if (pKeysBuffer['A'] & 0xF0) m_pPlayer->Move(XMFLOAT3(-1, 0, 0));
 			if (pKeysBuffer['D'] & 0xF0) m_pPlayer->Move(XMFLOAT3(1, 0, 0));
 			if (dwDirection!=VK_SPACE) m_pPlayer->Move(dwDirection, 1.0, true);

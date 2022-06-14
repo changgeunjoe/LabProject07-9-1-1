@@ -73,41 +73,66 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	m_nGameObjects = 1;
 	m_ppGameObjects = new CGameObject * [m_nGameObjects];
 	m_pParticleModel= CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/TREE.bin");
-	CGameObject* pApacheModel = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/TREE.bin");
+	CGameObject* pApacheModel = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/Apache.bin");
+	m_pMissileObject= CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/Apache.bin");
 	m_nGameParticleObjects =20;
 	//pApacheModel->m_pMesh->Set_xmBoundingBox()
 	//pApacheModel->SetOOBB(CMesh);
-	CApacheObject* pApacheObject = NULL;
+	CApacheObject* pApacheObject = NULL;//아파치 오브젝트
 	pApacheObject = new CApacheObject();
 	pApacheObject->SetChild(pApacheModel, true);
-
 	pApacheObject->OnInitialize();
-	pApacheObject->SetPosition(-100.0f, 0.0f, -200.0f - 50);
+	pApacheObject->SetPosition(-100.0f, 1000.0f, -200.0f - 50);
 	pApacheObject->SetScale(5.0f, 5.0f, 5.0f);
 	pApacheObject->Rotate(0.0f, 90.0f, 0.0f);
 	m_ppGameObjects[0] = pApacheObject;
+	Missiles(XMFLOAT3(-100.0f, 0.0f, -200.0f - 50), 0, XMFLOAT3(0.0f,1.0f,0.0f));//0은 아직 정하지 않았다.
+	/*m_ppGameMissileObjects = new CMissileObject * [m_nGameMissileObjects];
+	CMissileObject* pMissileObject = NULL;
+	for (int i = 0; i < m_nGameMissileObjects; i++)
+	{
+		pMissileObject = new CMissileObject();
+		pMissileObject->SetChild(m_pMissileObject, true);
+		pMissileObject->OnInitialize();
+		pMissileObject->Awake();
+		pMissileObject->SetMovingDirection(XMFLOAT3(0.0f,1.0f,0.0f));
+		pMissileObject->SetPosition(0.0f,0.0f,0.0f);
+		pMissileObject->SetScale(5.0f,5.0f, 5.0f);
+		pMissileObject->SetMovingRange(1.0f);
+		pMissileObject->SetRotationAxis(XMFLOAT3(
+			0.0f,
+			1.0f,
+			0.0f));
+		pMissileObject->SetRotationSpeed(2.0f);
+		pMissileObject->SetMovingSpeed(0.0f);
+		m_ppGameMissileObjects[i] = pMissileObject;
+	}*/
+
 	CreateShaderVariables(pd3dDevice, pd3dCommandList);
 
 	// 지형을 확대할 스케일 벡터이다.x - 축과 z - 축은 8배, y - 축은 2배 확대한다.
-	XMFLOAT3 xmf3Scale(8.0f, 2.0f, 8.0f);
+	XMFLOAT3 xmf3Scale(8.0f, 6.0f, 8.0f);
 	XMFLOAT4 xmf4Color(0.0f, 0.2f, 0.0f, 0.0f);
+	
 	//지형을 높이 맵 이미지 파일(HeightMap.raw)을 사용하여 생성한다. 높이 맵의 크기는 가로x세로(257x257)이다. 
 #ifdef _WITH_TERRAIN_PARTITION
 	/*하나의 격자 메쉬의 크기는 가로x세로(17x17)이다. 지형 전체는 가로 방향으로 16개, 세로 방향으로 16의 격자 메
 	쉬를 가진다. 지형을 구성하는 격자 메쉬의 개수는 총 256(16x16)개가 된다.*/
 	m_pTerrain = new CHeightMapTerrain(pd3dDevice, pd3dCommandList,
-		m_pd3dGraphicsRootSignature, _T("Model/HeightMap.raw"), 257, 257, 17,
+		m_pd3dGraphicsRootSignature, _T("Model/terrain5.raw"), 1024, 1024, 17,
 		17, xmf3Scale, xmf4Color);
 #else
 //지형을 하나의 격자 메쉬(257x257)로 생성한다. 
 	m_pTerrain = new CHeightMapTerrain(pd3dDevice, pd3dCommandList, 
-	m_pd3dGraphicsRootSignature, _T("Model/HeightMap.raw"), 257, 257, 257,
-	257, xmf3Scale, xmf4Color);
+	m_pd3dGraphicsRootSignature, _T("Model/terrain5.raw"), 1024, 1024, 1024,
+		1024, xmf3Scale, xmf4Color);
 #endif
 	//m_nShaders = 1;
 	//m_pShaders = new CObjectsShader[m_nShaders];
 	//m_pShaders[0].CreateShader(pd3dDevice, m_pd3dGraphicsRootSignature);
 	//m_pShaders[0].BuildObjects(pd3dDevice, pd3dCommandList, m_pTerrain);
+//////////////////////////////////////////////////////////////////////////////////플레이어 미사일 오브젝트
+	
 
 }
 
@@ -120,10 +145,15 @@ void CScene::ReleaseObjects()
 		for (int i = 0; i < m_nGameObjects; i++) if (m_ppGameObjects[i]) m_ppGameObjects[i]->Release();
 		delete[] m_ppGameObjects;
 	}
-	if (m_ppGameParticleObjects)
+	/*if (m_ppGameParticleObjects)
 	{
 		for (int i = 0; i < m_nGameParticleObjects; i++) if (m_ppGameParticleObjects[i]) m_ppGameParticleObjects[i]->Release();
 		delete[] m_ppGameParticleObjects;
+	}*/
+	if (m_ppGameMissileObjects)
+	{
+		for (int i = 0; i < m_nGameMissileObjects; i++) if (m_ppGameMissileObjects[i]) m_ppGameMissileObjects[i]->Release();
+		delete[] m_ppGameMissileObjects;
 	}
 
 	ReleaseShaderVariables();
@@ -212,6 +242,8 @@ void CScene::ReleaseUploadBuffers()
 	if (m_pTerrain) m_pTerrain->ReleaseUploadBuffers();
 	//for (int i = 0; i < m_nShaders; i++) m_pShaders[i].ReleaseUploadBuffers();
 	//for (int i = 0; i < m_nGameParticleObjects; i++) m_ppGameParticleObjects[i]->ReleaseUploadBuffers();
+	for (int i = 0; i < m_nGameMissileObjects; i++) m_ppGameMissileObjects[i]->ReleaseUploadBuffers();
+
 }
 
 bool CScene::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
@@ -231,7 +263,15 @@ bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 		case 'A': m_ppGameObjects[0]->MoveStrafe(-1.0f); break;
 		case 'D': m_ppGameObjects[0]->MoveStrafe(+1.0f); break;
 		case 'Q': m_ppGameObjects[0]->MoveUp(+1.0f); break;
-		case 'R': m_ppGameObjects[0]->MoveUp(-1.0f); break;
+		case 'R': m_bMissileon = true;
+
+			for (int i = 0; i < m_nGameMissileObjects; i++){
+				m_ppGameMissileObjects[i]->SetMovingSpeed(500.0f);
+				m_ppGameMissileObjects[i]->SetPosition(m_pPlayer->GetPosition());
+				m_ppGameMissileObjects[i]->SetMovingDirection(m_pPlayer->GetLookVector());
+				m_ppGameMissileObjects[i]->SetRotationAxis(m_pPlayer->GetUpVector());
+				m_ppGameMissileObjects[i]->Rotate(m_pPlayer->GetYaw());
+			}; break;
 		default:
 			break;
 		}
@@ -288,6 +328,13 @@ void CScene::AnimateObjects(float fTimeElapsed)
 
 
 		}
+		if (m_ppGameMissileObjects&&m_bMissileon)
+		{
+			for (int i = 0; i < m_nGameMissileObjects; i++) {
+			//	m_ppGameMissileObjects[i]->SetPosition(m_pPlayer->GetPosition());
+				//m_ppGameMissileObjects[i]->SetMovingDirection(m_pPlayer->GetLookVector());
+			}
+		}
 		CheckObjectByWallCollision();
 	
 }
@@ -322,6 +369,15 @@ void CScene::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera
 			m_ppGameParticleObjects[i]->Render(pd3dCommandList, pCamera);
 		}
 	}*/
+	for (int i = 0; i < m_nGameMissileObjects; i++)
+	{
+		if (m_ppGameMissileObjects[i]&& m_bMissileon)
+		{
+			m_ppGameMissileObjects[i]->Animate(m_fElapsedTime, NULL);
+			m_ppGameMissileObjects[i]->UpdateTransform(NULL);
+			m_ppGameMissileObjects[i]->Render(pd3dCommandList, pCamera);
+		}
+	}
 	if (m_pTerrain) m_pTerrain->Render(pd3dCommandList, pCamera);
 	/*for (int i = 0; i < m_nShaders; i++)
 	{
@@ -382,15 +438,31 @@ void CScene::Particles(XMFLOAT3 pos, int nParticles)
 	}
 
 	////////////////////////////////////////////
-	/*m_ppGameParticleObjects = new CParticleObject * [m_nGameParticleObjects];
-	CParticleObject* pParticleObject = NULL;
-
-	pParticleObject = new CParticleObject();
-	pParticleObject->SetChild(m_pParticleModel, true);
-	pParticleObject->OnInitialize();
-	pParticleObject->SetPosition(35.0f, 0.0f, 80.0f);
-	pParticleObject->SetScale(5.0f, 5.0f, 5.0f);
-	pParticleObject->Rotate(0.0f, 0.0f, 0.0f);
-	m_ppGameParticleObjects[0] = pParticleObject;*/
 }
+void CScene::Missiles(XMFLOAT3 pos, int nParticles, XMFLOAT3 ObjectLookVector)
+{
+	m_ppGameMissileObjects = new CMissileObject * [m_nGameMissileObjects];
+	CMissileObject* pMissileObject = NULL;
+	for (int i = 0; i < m_nGameMissileObjects; i++)
+	{
+		pMissileObject = new CMissileObject();
+		pMissileObject->SetChild(m_pMissileObject, true);
+		pMissileObject->OnInitialize();
+		pMissileObject->Awake();
+		pMissileObject->SetMovingDirection(ObjectLookVector);
+		pMissileObject->SetPosition(pos);
+		pMissileObject->SetScale(2.0f, 2.0f, 2.0f);
+		pMissileObject->SetMovingRange(1.0f);
+		pMissileObject->SetRotationAxis(XMFLOAT3(
+			0.0f,
+			1.0f,
+			0.0f));
+		pMissileObject->SetRotationSpeed(2.0f);
+		pMissileObject->SetMovingSpeed(500.0f);
+		m_ppGameMissileObjects[i] = pMissileObject;
+	}
+
+	////////////////////////////////////////////
+}
+
 

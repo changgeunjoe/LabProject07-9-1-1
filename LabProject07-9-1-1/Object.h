@@ -67,7 +67,8 @@ private:
 
 public:
 	void AddRef() { m_nReferences++; }
-	void Release() { if (--m_nReferences <= 0) delete this; }
+	void Release() { if (--m_nReferences <= 0) 
+		this; }
 
 	XMFLOAT4						m_xmf4Ambient = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
 	XMFLOAT4						m_xmf4Diffuse = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -80,6 +81,8 @@ class CMaterial
 public:
 	CMaterial();
 	virtual ~CMaterial();
+
+	bool m_nMaterialsCheck = true;
 
 private:
 	int								m_nReferences = 0;
@@ -119,7 +122,7 @@ public:
 	CGameObject(int nMeshes = 1);
 	virtual ~CGameObject();
 private:
-	bool					m_bActive = true;
+	
 public:
 	char							m_pstrFrameName[64];
 	//게임 객체는 여러 개의 메쉬를 포함하는 경우 게임 객체가 가지는 메쉬들에 대한 포인터와 그 개수이다.
@@ -127,8 +130,19 @@ public:
 	CMesh* m_pMesh = NULL;
 	CMesh** m_ppMeshes = NULL;
 	int m_nMeshes = 0;
+	bool							m_bActive = true;
+	bool							m_nMaterialsCheck = true;
 	int								m_nMaterials = 0;
+	float							m_fMovingSpeed = 0.0f;
+	float							m_hp = 100;
+
 	CMaterial** m_ppMaterials = NULL;
+	
+	XMFLOAT3						m_xmf3MovingDirection = XMFLOAT3(0.0f, 0.0f, 1.0f);
+	
+	XMFLOAT3						m_xmf3RotationAxis = XMFLOAT3(0.0f, 1.0f, 0.0f);
+	float							m_fRotationSpeed = 0.0f;
+	float							m_fMovingRange = 0.0f;
 
 	XMFLOAT4X4						m_xmf4x4Transform;
 	XMFLOAT4X4						m_xmf4x4World;
@@ -185,6 +199,12 @@ public:
 	void SetPositionZ(float z);
 	void SetPosition(XMFLOAT3 xmf3Position);
 	void SetScale(float x, float y, float z);
+	void SetMovingDirection(XMFLOAT3 xmf3MovingDirection) { m_xmf3MovingDirection = Vector3::Normalize(xmf3MovingDirection); };
+	void SetMovingSpeed(float fSpeed) { m_fMovingSpeed = fSpeed; }
+	void SetMovingRange(float fRange) { m_fMovingRange = fRange; }
+
+	void SetRotationSpeed(float fRotationSpeed) { m_fRotationSpeed = fRotationSpeed; }
+	void SetRotationAxis(XMFLOAT3 xmf3RotationAxis) { m_xmf3RotationAxis = xmf3RotationAxis; }
 	
 	void MoveStrafe(float fDistance = 1.0f);
 	void MoveUp(float fDistance = 1.0f);
@@ -237,13 +257,13 @@ public:
 	virtual ~CParticleObject();
 
 private:
-	XMFLOAT3				m_xmf3MovingDirection;
+	/*XMFLOAT3				m_xmf3MovingDirection;
 	float					m_fMovingSpeed;
 	float					m_fMovingRange;
 
 	XMFLOAT3				m_xmf3RotationAxis;
 	float					m_fRotationSpeed;
-	bool					m_bActive = false;
+	bool					m_bActive = false;*/
 
 public:
 	void SetMovingDirection(XMFLOAT3 xmf3MovingDirection) { m_xmf3MovingDirection = Vector3::Normalize(xmf3MovingDirection); };
@@ -362,6 +382,30 @@ public:
 	//지형의 크기(가로/세로)를 반환한다. 높이 맵의 크기에 스케일을 곱한 값이다. 
 	float GetWidth() { return(m_nWidth * m_xmf3Scale.x); }
 	float GetLength() { return(m_nLength * m_xmf3Scale.z); }
+};
+
+class CMissileObject :public CGameObject 
+{
+public:
+	CMissileObject();
+	virtual ~CMissileObject();
+
+public:
+	void Animate(float fElapsedTime, XMFLOAT4X4* pxmf4x4Parent);
+
+	float						m_fBulletEffectiveRange = 50.0f;
+	float						m_fMovingDistance = 0.0f;
+	float						m_fRotationAngle = 0.0f;
+	XMFLOAT3					m_xmf3FirePosition = XMFLOAT3(0.0f, 0.0f, 1.0f);
+
+	float						m_fElapsedTimeAfterFire = 0.0f;
+	float						m_fLockingDelayTime = 0.3f;
+	float						m_fLockingTime = 4.0f;
+
+	CGameObject* m_pLockedObject = NULL;
+
+	void SetFirePosition(XMFLOAT3 xmf3FirePosition);
+	void Reset();
 };
 
 
