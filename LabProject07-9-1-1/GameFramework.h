@@ -83,6 +83,7 @@ private:
 	CScene						*m_pScene = NULL;
 	CPlayer						*m_pPlayer = NULL;
 	CCamera						*m_pCamera = NULL;
+	//CCamera						*m_pCamera2 = NULL;
 
 	POINT						m_ptOldCursorPos;
 

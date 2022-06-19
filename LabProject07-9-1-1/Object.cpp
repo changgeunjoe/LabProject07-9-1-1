@@ -75,6 +75,8 @@ CGameObject::CGameObject(int nMeshes)
 		m_ppMeshes = new CMesh * [m_nMeshes];
 		for (int i = 0; i < m_nMeshes; i++) m_ppMeshes[i] = NULL;
 	}
+	m_xmOOBB = BoundingOrientedBox(GetPosition(), XMFLOAT3(20.0f, 20.0f, 20.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	m_xmMovingOOBB = BoundingOrientedBox(GetPosition(), XMFLOAT3(200.0f, 200.0f, 200.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 }
 
 CGameObject::~CGameObject()
@@ -104,6 +106,7 @@ CGameObject::~CGameObject()
 		m_pShader->ReleaseShaderVariables();
 		m_pShader->Release();
 	}
+	if (m_pMaterial) m_pMaterial->Release();
 }
 
 void CGameObject::AddRef()
@@ -147,6 +150,8 @@ void CGameObject::UpdateBoundingBox()
 		//m_xmOOBB.Transform(m_xmOOBB, XMLoadFloat4x4(&m_xmf4x4Transform));
 	m_xmOOBB = BoundingOrientedBox(GetTransformPosition(), m_xmOOBB.Extents, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 	XMStoreFloat4(&m_xmOOBB.Orientation, XMQuaternionNormalize(XMLoadFloat4(&m_xmOOBB.Orientation)));
+	m_xmMovingOOBB = BoundingOrientedBox(GetTransformPosition(), m_xmMovingOOBB.Extents, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	XMStoreFloat4(&m_xmMovingOOBB.Orientation, XMQuaternionNormalize(XMLoadFloat4(&m_xmMovingOOBB.Orientation)));
 }
 
 
@@ -194,11 +199,15 @@ void CGameObject::SetMaterial(int nMaterial, CMaterial* pMaterial)
 
 void CGameObject::Animate(float fTimeElapsed, XMFLOAT4X4* pxmf4x4Parent)
 {
+	if (m_fMovingSpeed != 0.0f)
+		Move(m_xmf3MovingDirection, m_fMovingSpeed * fTimeElapsed);
 	if (!m_bActive) return;
 	if (m_pSibling) m_pSibling->Animate(fTimeElapsed, pxmf4x4Parent);
 	if (m_pChild) m_pChild->Animate(fTimeElapsed, &m_xmf4x4World);
 	UpdateBoundingBox();
+
 }
+
 
 
 CGameObject* CGameObject::FindFrame(const char* pstrFrameName)
@@ -727,6 +736,28 @@ CGameObject* CGameObject::LoadGeometryFromFile(ID3D12Device* pd3dDevice, ID3D12G
 
 	return(pGameObject);
 }
+void CGameObject::SetLookAt(XMFLOAT3 xmf3Position, XMFLOAT3 xmf3LookAt, XMFLOAT3 xmf3Up)
+{
+	m_xmf3Position = xmf3Position;
+	XMStoreFloat4x4(&m_xmf4x4View, XMMatrixLookAtLH(XMLoadFloat3(&m_xmf3Position), XMLoadFloat3(&xmf3LookAt), XMLoadFloat3(&xmf3Up)));
+
+	XMVECTORF32 xmf32vRight = { m_xmf4x4View._11, m_xmf4x4View._21, m_xmf4x4View._31, 0.0f };
+	XMVECTORF32 xmf32vUp = { m_xmf4x4View._12, m_xmf4x4View._22, m_xmf4x4View._32, 0.0f };
+	XMVECTORF32 xmf32vLook = { m_xmf4x4View._13, m_xmf4x4View._23, m_xmf4x4View._33, 0.0f };
+
+	XMStoreFloat3(&m_xmf3Right, XMVector3Normalize(xmf32vRight));
+	XMStoreFloat3(&m_xmf3Up, XMVector3Normalize(xmf32vUp));
+	XMStoreFloat3(&m_xmf3Look, XMVector3Normalize(xmf32vLook));
+
+	m_xmf4x4Transform._11 = m_xmf3Right.x; m_xmf4x4Transform._12 = m_xmf3Up.x; m_xmf4x4Transform._13 = m_xmf3Look.x;
+	m_xmf4x4Transform._21 = m_xmf3Right.y; m_xmf4x4Transform._22 = m_xmf3Up.y; m_xmf4x4Transform._23 = m_xmf3Look.y;
+	m_xmf4x4Transform._31 = m_xmf3Right.z; m_xmf4x4Transform._32 = m_xmf3Up.z; m_xmf4x4Transform._33 = m_xmf3Look.z;
+}
+
+void CGameObject::SetLookAt(XMFLOAT3 xmf3LookAt, XMFLOAT3 xmf3Up)
+{
+	SetLookAt(m_xmf3Position, xmf3LookAt, xmf3Up);
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -1044,6 +1075,7 @@ void CParticleObject::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera
 
 CMissileObject::CMissileObject()
 {
+
 	m_xmf3MovingDirection = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	m_fMovingSpeed = 0;
 	m_fMovingRange = 0;
@@ -1051,6 +1083,10 @@ CMissileObject::CMissileObject()
 	m_xmf3RotationAxis = XMFLOAT3(0.0f, 0.0f, 0.0f);;
 	m_fRotationSpeed = 0;
 	m_bActive = true;
+	m_xmOOBB = BoundingOrientedBox(GetPosition(), 
+		XMFLOAT3(50.0f, 50.0f, 50.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	m_xmFollwOOBB = BoundingOrientedBox(GetPosition(),
+		XMFLOAT3(200.0f, 200.0f, 200.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 }
 
 CMissileObject::~CMissileObject()
@@ -1061,7 +1097,16 @@ void CMissileObject::Animate(float fElapsedTime, XMFLOAT4X4* pxmf4x4Parent)
 {
 	if (m_fMovingSpeed != 0.0f)
 		Move(m_xmf3MovingDirection, m_fMovingSpeed * fElapsedTime);
+		UpdateBoundingBox();
 	CGameObject::Animate(fElapsedTime, pxmf4x4Parent);
+}
+
+void CMissileObject::UpdateBoundingBox()
+{
+	m_xmOOBB = BoundingOrientedBox(GetTransformPosition(), m_xmOOBB.Extents, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	XMStoreFloat4(&m_xmOOBB.Orientation, XMQuaternionNormalize(XMLoadFloat4(&m_xmOOBB.Orientation)));
+	m_xmFollwOOBB = BoundingOrientedBox(GetTransformPosition(), m_xmFollwOOBB.Extents, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	XMStoreFloat4(&m_xmFollwOOBB.Orientation, XMQuaternionNormalize(XMLoadFloat4(&m_xmFollwOOBB.Orientation)));
 }
 
 void CMissileObject::SetFirePosition(XMFLOAT3 xmf3FirePosition)

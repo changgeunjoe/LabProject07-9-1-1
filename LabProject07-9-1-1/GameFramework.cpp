@@ -309,12 +309,10 @@ void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPA
 		case WM_KEYUP:
 			switch (wParam)
 			{
-				/*case 'W': m_pPlayer->MoveForward(+1.0f); break;
-				case 'S': m_pPlayer->MoveForward(-1.0f); break;
 				case 'A': m_pPlayer->MoveStrafe(-1.0f); break;
 				case 'D': m_pPlayer->MoveStrafe(+1.0f); break;
 				case 'Q': m_pPlayer->MoveUp(+1.0f); break;
-				case 'R': m_pPlayer->MoveUp(-1.0f); break;*/
+				case 'R': m_pPlayer->MoveUp(-1.0f); break;
 				case VK_ESCAPE:
 					::PostQuitMessage(0);
 					break;
@@ -409,10 +407,10 @@ void CGameFramework::BuildObjects()
 	if (m_pScene) m_pScene->BuildObjects(m_pd3dDevice, m_pd3dCommandList);
 
 	CAirplanePlayer *pAirplanePlayer = new CAirplanePlayer(m_pd3dDevice, m_pd3dCommandList, m_pScene->GetGraphicsRootSignature(), m_pScene->GetTerrain());
-	pAirplanePlayer->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
+	pAirplanePlayer->SetPosition(XMFLOAT3(1200.0f, 500.0f, 1200.0f));
 	m_pScene->m_pPlayer = m_pPlayer = pAirplanePlayer;
 	m_pCamera = m_pPlayer->GetCamera();
-	
+	//m_pCamera2 = m_pPlayer->GetCamera();
 	m_pd3dCommandList->Close();
 	ID3D12CommandList *ppd3dCommandLists[] = { m_pd3dCommandList };
 	m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dCommandLists);
@@ -449,6 +447,7 @@ void CGameFramework::ProcessInput()
 		if (pKeysBuffer[VK_PRIOR] & 0xF0) dwDirection |= DIR_UP;
 		if (pKeysBuffer[VK_NEXT] & 0xF0) dwDirection |= DIR_DOWN;
 		//if (pKeysBuffer[VK_SPACE] & 0xF0) dwDirection |= DIR_BACKWARD;
+		if (dwDirection) m_pPlayer->Move(dwDirection, 5.0f);
 
 		float cxDelta = 0.0f, cyDelta = 0.0f;
 		POINT ptCursorPos;
@@ -458,6 +457,7 @@ void CGameFramework::ProcessInput()
 			GetCursorPos(&ptCursorPos);
 			cxDelta = (float)(ptCursorPos.x - m_ptOldCursorPos.x) / 3.0f;
 			cyDelta = (float)(ptCursorPos.y - m_ptOldCursorPos.y) / 3.0f;
+
 			SetCursorPos(m_ptOldCursorPos.x, m_ptOldCursorPos.y);
 		}
 
@@ -470,15 +470,17 @@ void CGameFramework::ProcessInput()
 				else
 					m_pPlayer->Rotate(cyDelta, cxDelta, 0.0f);
 			}
-			
-			
-			if (pKeysBuffer[VK_SPACE] & 0xF0)m_pPlayer->Move(XMFLOAT3(0, 0, 1));
-			if (pKeysBuffer['E'] & 0xF0) m_pPlayer->Move(XMFLOAT3(0, 1, 0));
-			if (pKeysBuffer['A'] & 0xF0) m_pPlayer->Move(XMFLOAT3(-1, 0, 0));
-			if (pKeysBuffer['D'] & 0xF0) m_pPlayer->Move(XMFLOAT3(1, 0, 0));
-			if (dwDirection!=VK_SPACE) m_pPlayer->Move(dwDirection, 1.0, true);
-			if (pKeysBuffer[VK_SPACE] & 0xF0)m_pCamera->Move(XMFLOAT3(0, 1, -3));
+
+
+			//	if (pKeysBuffer[VK_SPACE] & 0xF0)m_pPlayer->Move(XMFLOAT3(0, 0, 1));
+			//if (pKeysBuffer['E'] & 0xF0) m_pPlayer->Rotate(1, 0, 0);
+			//if (pKeysBuffer['C'] & 0xF0) m_pPlayer->Rotate(1, 0, 0);
+			//	if (pKeysBuffer['A'] & 0xF0) m_pPlayer->Move(XMFLOAT3(-1, 0, 0));
+			//	if (pKeysBuffer['D'] & 0xF0) m_pPlayer->Move(XMFLOAT3(1, 0, 0));
+			//	if (dwDirection!=VK_SPACE) m_pPlayer->Move(dwDirection, 1.0, true);
+			//	if (pKeysBuffer[VK_SPACE] & 0xF0)m_pCamera->Move(XMFLOAT3(0, 1, -3));
 			if (pKeysBuffer[VK_SPACE] & 0xF0)m_pPlayer->Move(XMFLOAT3(0, 0, -1));
+			//}
 		}
 	}
 	m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
@@ -554,6 +556,7 @@ void CGameFramework::FrameAdvance()
 	m_pd3dCommandList->OMSetRenderTargets(1, &d3dRtvCPUDescriptorHandle, TRUE, &d3dDsvCPUDescriptorHandle);
 
 	if (m_pScene) m_pScene->Render(m_pd3dCommandList, m_pCamera);
+	//if (m_pScene) m_pScene->Render(m_pd3dCommandList, m_pCamera2);
 
 #ifdef _WITH_PLAYER_TOP
 	m_pd3dCommandList->ClearDepthStencilView(d3dDsvCPUDescriptorHandle, D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, NULL);

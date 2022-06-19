@@ -129,9 +129,12 @@ public:
 	CShader* m_pShader = NULL;
 	CMesh* m_pMesh = NULL;
 	CMesh** m_ppMeshes = NULL;
+	CMaterial* m_pMaterial = NULL;
 	int m_nMeshes = 0;
 	bool							m_bActive = true;
 	bool							m_nMaterialsCheck = true;
+	bool							m_bGameOver = false;
+	bool							m_bstop = false;
 	int								m_nMaterials = 0;
 	float							m_fMovingSpeed = 0.0f;
 	float							m_hp = 100;
@@ -141,11 +144,17 @@ public:
 	XMFLOAT3						m_xmf3MovingDirection = XMFLOAT3(0.0f, 0.0f, 1.0f);
 	
 	XMFLOAT3						m_xmf3RotationAxis = XMFLOAT3(0.0f, 1.0f, 0.0f);
+	XMFLOAT3						m_xmf3Position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	XMFLOAT3						m_xmf3Right = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	XMFLOAT3						m_xmf3Look = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	XMFLOAT3						m_xmf3Up = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	float							m_fRotationSpeed = 0.0f;
 	float							m_fMovingRange = 0.0f;
 
+
 	XMFLOAT4X4						m_xmf4x4Transform;
 	XMFLOAT4X4						m_xmf4x4World;
+	XMFLOAT4X4						m_xmf4x4View;
 
 	CGameObject* m_pParent = NULL;
 	CGameObject* m_pChild = NULL;
@@ -153,6 +162,8 @@ public:
 	//충돌박스
 	BoundingOrientedBox		m_xmOOBB;
 	BoundingOrientedBox		m_xmOOBBTransformed;
+	BoundingOrientedBox		m_xmMovingOOBB;
+	
 	CGameObject* m_pCollider;
 
 
@@ -161,6 +172,9 @@ public:
 	void SetShader(CShader* pShader);
 	void SetShader(int nMaterial, CShader* pShader);
 	void SetMaterial(int nMaterial, CMaterial* pMaterial);
+	void SetMaterial(UINT nReflection);
+	void SetLookAt(XMFLOAT3 xmf3Position, XMFLOAT3 xmf3LookAt, XMFLOAT3 xmf3Up);
+	void SetLookAt(XMFLOAT3 xmf3LookAt, XMFLOAT3 xmf3Up);
 
 
 	void SetChild(CGameObject* pChild, bool bReferenceUpdate = false);
@@ -392,7 +406,7 @@ public:
 
 public:
 	void Animate(float fElapsedTime, XMFLOAT4X4* pxmf4x4Parent);
-
+	virtual void UpdateBoundingBox();
 	float						m_fBulletEffectiveRange = 50.0f;
 	float						m_fMovingDistance = 0.0f;
 	float						m_fRotationAngle = 0.0f;
@@ -402,8 +416,9 @@ public:
 	float						m_fLockingDelayTime = 0.3f;
 	float						m_fLockingTime = 4.0f;
 
+	
 	CGameObject* m_pLockedObject = NULL;
-
+	BoundingOrientedBox		m_xmFollwOOBB;//추적 박스
 	void SetFirePosition(XMFLOAT3 xmf3FirePosition);
 	void Reset();
 };

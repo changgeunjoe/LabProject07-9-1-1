@@ -70,11 +70,11 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 
 	BuildDefaultLightsAndMaterials();
 
-	m_nGameObjects = 1;
+	m_nGameObjects = 2;
 	m_ppGameObjects = new CGameObject * [m_nGameObjects];
 	m_pParticleModel= CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/TREE.bin");
 	CGameObject* pApacheModel = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/Apache.bin");
-	m_pMissileObject= CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/Apache.bin");
+	m_pMissileObject= CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/missile.bin");
 	m_nGameParticleObjects =20;
 	//pApacheModel->m_pMesh->Set_xmBoundingBox()
 	//pApacheModel->SetOOBB(CMesh);
@@ -82,11 +82,23 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	pApacheObject = new CApacheObject();
 	pApacheObject->SetChild(pApacheModel, true);
 	pApacheObject->OnInitialize();
-	pApacheObject->SetPosition(-100.0f, 1000.0f, -200.0f - 50);
+	pApacheObject->SetPosition(1400.0f,1000.0f, 1400.0f );
 	pApacheObject->SetScale(5.0f, 5.0f, 5.0f);
 	pApacheObject->Rotate(0.0f, 90.0f, 0.0f);
+	pApacheObject->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(20.0f, 20.0f, 20.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	pApacheObject->SetOOBB();
 	m_ppGameObjects[0] = pApacheObject;
+	pApacheObject = new CApacheObject();
+	pApacheObject->SetChild(pApacheModel, true);
+	pApacheObject->OnInitialize();
+	pApacheObject->SetPosition(1200.0f, 1000.0f, 1000.0f);
+	pApacheObject->SetScale(5.0f, 5.0f, 5.0f);
+	pApacheObject->Rotate(0.0f, 180.0f, 0.0f);
+	pApacheObject->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(20.0f, 20.0f, 20.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	pApacheObject->SetOOBB();
+	m_ppGameObjects[1] = pApacheObject;
 	Missiles(XMFLOAT3(-100.0f, 0.0f, -200.0f - 50), 0, XMFLOAT3(0.0f,1.0f,0.0f));//0은 아직 정하지 않았다.
+	Particles(XMFLOAT3(-100.0f, 0.0f, -200.0f - 50),20);
 	/*m_ppGameMissileObjects = new CMissileObject * [m_nGameMissileObjects];
 	CMissileObject* pMissileObject = NULL;
 	for (int i = 0; i < m_nGameMissileObjects; i++)
@@ -145,11 +157,11 @@ void CScene::ReleaseObjects()
 		for (int i = 0; i < m_nGameObjects; i++) if (m_ppGameObjects[i]) m_ppGameObjects[i]->Release();
 		delete[] m_ppGameObjects;
 	}
-	/*if (m_ppGameParticleObjects)
+	if (m_ppGameParticleObjects)
 	{
 		for (int i = 0; i < m_nGameParticleObjects; i++) if (m_ppGameParticleObjects[i]) m_ppGameParticleObjects[i]->Release();
 		delete[] m_ppGameParticleObjects;
-	}*/
+	}
 	if (m_ppGameMissileObjects)
 	{
 		for (int i = 0; i < m_nGameMissileObjects; i++) if (m_ppGameMissileObjects[i]) m_ppGameMissileObjects[i]->Release();
@@ -241,7 +253,7 @@ void CScene::ReleaseUploadBuffers()
 	for (int i = 0; i < m_nGameObjects; i++) m_ppGameObjects[i]->ReleaseUploadBuffers();
 	if (m_pTerrain) m_pTerrain->ReleaseUploadBuffers();
 	//for (int i = 0; i < m_nShaders; i++) m_pShaders[i].ReleaseUploadBuffers();
-	//for (int i = 0; i < m_nGameParticleObjects; i++) m_ppGameParticleObjects[i]->ReleaseUploadBuffers();
+	for (int i = 0; i < m_nGameParticleObjects; i++) m_ppGameParticleObjects[i]->ReleaseUploadBuffers();
 	for (int i = 0; i < m_nGameMissileObjects; i++) m_ppGameMissileObjects[i]->ReleaseUploadBuffers();
 
 }
@@ -258,19 +270,25 @@ bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 	case WM_KEYDOWN:
 		switch (wParam)
 		{
-		case 'W': m_ppGameObjects[0]->MoveForward(+1.0f); break;
-		case 'S': m_ppGameObjects[0]->MoveForward(-1.0f); break;
-		case 'A': m_ppGameObjects[0]->MoveStrafe(-1.0f); break;
-		case 'D': m_ppGameObjects[0]->MoveStrafe(+1.0f); break;
-		case 'Q': m_ppGameObjects[0]->MoveUp(+1.0f); break;
-		case 'R': m_bMissileon = true;
-
-			for (int i = 0; i < m_nGameMissileObjects; i++){
-				m_ppGameMissileObjects[i]->SetMovingSpeed(500.0f);
+	//	case 'W': m_ppGameObjects[0]->MoveForward(+1.0f); break;
+	//	case 'S': m_ppGameObjects[0]->MoveForward(-1.0f); break;
+	//	case 'A': m_ppGameObjects[0]->MoveStrafe(-1.0f); break;
+	//	case 'D': m_ppGameObjects[0]->MoveStrafe(+1.0f); break;
+		//case 'Q': m_ppGameObjects[0]->MoveUp(+1.0f); break;
+		case 'R':
+			m_bMissileon = true;
+			for (int i = 0; i < 1; i++){
+				m_fFinishCounter = 0;
+				m_ppGameMissileObjects[i]->SetMovingSpeed(100.0f);
 				m_ppGameMissileObjects[i]->SetPosition(m_pPlayer->GetPosition());
 				m_ppGameMissileObjects[i]->SetMovingDirection(m_pPlayer->GetLookVector());
-				m_ppGameMissileObjects[i]->SetRotationAxis(m_pPlayer->GetUpVector());
-				m_ppGameMissileObjects[i]->Rotate(m_pPlayer->GetYaw());
+				//m_ppGameMissileObjects[i]->SetLookAt(XMFLOAT3(m_pPlayer->GetPosition().x+m_pPlayer->GetLookVector().x * 10, 
+					//m_pPlayer->GetPosition().y + m_pPlayer->GetLookVector().y * 10,
+					//m_pPlayer->GetPosition().z + m_pPlayer->GetLookVector().z * 10), m_pPlayer->GetLookVector(), m_pPlayer->GetUpVector());
+				//m_ppGameMissileObjects[i]->SetRotationAxis(m_pPlayer->GetUpVector());
+				//m_ppGameMissileObjects[i]->Rotate(m_pPlayer->GetYaw());
+				//m_ppGameMissileObjects[i]->SetLookAt(m_pPlayer->GetLookVector(), m_pPlayer->GetUpVector());
+				m_ppGameMissileObjects[i]->m_xmf4x4Transform = m_pPlayer->m_xmf4x4World;
 			}; break;
 		default:
 			break;
@@ -292,51 +310,35 @@ void CScene::AnimateObjects(float fTimeElapsed)
 	m_fElapsedTime = fTimeElapsed;
 
 	if (m_bGameOver) {
-		m_pPlayer->Sleep();
+		//m_pPlayer->Sleep();
 		m_fRestartCounter += fTimeElapsed;
 		if (m_fRestartCounter > 2)
 		{
 			m_fRestartCounter = 0.0f;
 			m_bGameOver = false;
-			m_pPlayer->Awake();
-			m_pPlayer->Reset();
+		//	m_pPlayer->Awake();
+		//	m_pPlayer->Reset();
 		}
 	}
-		//for (int i = 60; i < 65; i++)
-		//{
-		//	if (m_ppGameObjects[i]->GetPosition().z < -40.0f)
-		//	{
-		//		m_ppGameObjects[i]->SetPositionZ(RANDOM_NUM(400, 700));
-		//	}
-		//	m_ppGameObjects[i]->MoveForward(-0.2f);
-		//	//m_ppGameObjects[i]->m_xmOOBB = BoundingOrientedBox(m_ppGameObjects[i]->GetPosition(), m_ppGameObjects[i]->m_xmOOBB.Extents, XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
-		//}
-	/*	for (int i = 60; i < m_nGameObjects; i++) m_ppGameObjects[i]->Animate(fTimeElapsed, NULL);*/
-		/*for (int i = 0; i < m_nGameParticleObjects; i++)
-		{
-			if (m_ppGameParticleObjects[i]->IsActive())
-			{
-			}
-		}*/
-
-		m_pPlayer->Animate(fTimeElapsed, NULL);
-		if (m_pLights)
-		{
-			m_pLights[1].m_xmf3Position = m_pPlayer->GetPosition();
-			m_pLights[1].m_xmf3Direction = m_pPlayer->GetLookVector();
-			//m_ppGameObjects[0]->SetPositionZ( m_pPlayer->GetPosition().z);
-
-
+	m_pPlayer->Animate(fTimeElapsed, NULL);
+	if (m_pLights)
+	{
+		m_pLights[1].m_xmf3Position = m_pPlayer->GetPosition();
+		m_pLights[1].m_xmf3Direction = m_pPlayer->GetLookVector();
+		//m_ppGameObjects[0]->SetPositionZ( m_pPlayer->GetPosition().z);
+	}
+	if (m_ppGameMissileObjects&&m_bMissileon)
+	{
+		for (int i = 0; i < m_nGameMissileObjects; i++) {
+		//	m_ppGameMissileObjects[i]->SetPosition(m_pPlayer->GetPosition());
+		//m_ppGameMissileObjects[i]->SetMovingDirection(m_pPlayer->GetLookVector());
 		}
-		if (m_ppGameMissileObjects&&m_bMissileon)
-		{
-			for (int i = 0; i < m_nGameMissileObjects; i++) {
-			//	m_ppGameMissileObjects[i]->SetPosition(m_pPlayer->GetPosition());
-				//m_ppGameMissileObjects[i]->SetMovingDirection(m_pPlayer->GetLookVector());
-			}
-		}
-		CheckObjectByWallCollision();
+	}
 	
+	FollowMissile();
+	//FollwPlayer();
+	MoveEnemy();
+	CheckObjectByPlayerCollision();
 }
 
 void CScene::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera)
@@ -360,7 +362,7 @@ void CScene::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera
 			m_ppGameObjects[i]->Render(pd3dCommandList, pCamera);
 		}
 	}
-	/*for (int i = 0; i < m_nGameParticleObjects; i++)
+	for (int i = 0; i < m_nGameParticleObjects; i++)
 	{
 		if (m_ppGameParticleObjects[i]&& m_bGameOver)
 		{
@@ -368,10 +370,16 @@ void CScene::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera
 			m_ppGameParticleObjects[i]->UpdateTransform(NULL);
 			m_ppGameParticleObjects[i]->Render(pd3dCommandList, pCamera);
 		}
-	}*/
+	}
 	for (int i = 0; i < m_nGameMissileObjects; i++)
 	{
-		if (m_ppGameMissileObjects[i]&& m_bMissileon)
+		if (m_ppGameMissileObjects[0]&& m_bMissileon)
+		{
+			m_ppGameMissileObjects[0]->Animate(m_fElapsedTime, NULL);
+			m_ppGameMissileObjects[0]->UpdateTransform(NULL);
+			m_ppGameMissileObjects[0]->Render(pd3dCommandList, pCamera);
+		}
+		if (m_ppGameMissileObjects[i] &&i>0)
 		{
 			m_ppGameMissileObjects[i]->Animate(m_fElapsedTime, NULL);
 			m_ppGameMissileObjects[i]->UpdateTransform(NULL);
@@ -385,31 +393,29 @@ void CScene::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera
 	}*/
 }
 
-void CScene::CheckObjectByWallCollision()
+void CScene::CheckObjectByPlayerCollision()
 {
-	//for (int i = 0; i < m_nGameObjects; i++)
-	//{
-	//	BoundingOrientedBox wmPlayerOOBB = m_pPlayer->m_xmOOBB;
-	//	ContainmentType containType = m_ppGameObjects[i]->m_xmOOBB.Contains(wmPlayerOOBB);
-	//	
-	//	if (m_ppGameObjects[i]->m_xmOOBB.Intersects(wmPlayerOOBB))
-	//	{
-	//		XMFLOAT3 CameraPosition= m_pPlayer->GetCamera()->GetPosition();
-	//		m_bGameOver=true;
-	//		//m_pPlayer->Release();
-	//	for (int i = 0; i < m_nGameParticleObjects; i++)
-	//	{
-	//		m_ppGameParticleObjects[i]->SetMovingSpeed(20.0f);
-	//		m_ppGameParticleObjects[i]->SetPosition(m_pPlayer->GetPosition());
-	//	}
-	////	m_pPlayer->SetPosition(XMFLOAT3(50.0f, 500.0f, 0.0f));
-	////m_pPlayer->GetCamera()->SetPosition(CameraPosition);
-	//	}
-	//	//else
-	//		//m_pPlayer->SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
-	//}
-
+	for (int i = 1; i < m_nGameMissileObjects; i++) {
+		if (m_ppGameMissileObjects[i]->m_xmOOBB.Intersects(m_pPlayer->m_xmOOBB)&&!m_bGameOver )
+		{
+			//m_fFinishCounter = 0;
+			m_bGameOver = true;
+			for (int t = 0; t < m_nGameParticleObjects; t++)
+			{
+				m_ppGameParticleObjects[t]->SetMovingSpeed(20.0f);
+				m_ppGameParticleObjects[t]->SetPosition(m_ppGameMissileObjects[i]->GetPosition());
+			}
+			
+			m_ppGameMissileObjects[i]->SetMovingSpeed(0.0f);
+			m_ppGameMissileObjects[i]->SetPosition(XMFLOAT3( - 1000, - 1000, - 1000));
+			//m_pPlayer->Move(0, 2, 0);
+			m_pPlayer->Rotate(0, 5, 0);
+		}
+	}
 }
+
+
+
 
 void CScene::Particles(XMFLOAT3 pos, int nParticles)
 {
@@ -439,6 +445,9 @@ void CScene::Particles(XMFLOAT3 pos, int nParticles)
 
 	////////////////////////////////////////////
 }
+
+
+
 void CScene::Missiles(XMFLOAT3 pos, int nParticles, XMFLOAT3 ObjectLookVector)
 {
 	m_ppGameMissileObjects = new CMissileObject * [m_nGameMissileObjects];
@@ -457,12 +466,129 @@ void CScene::Missiles(XMFLOAT3 pos, int nParticles, XMFLOAT3 ObjectLookVector)
 			0.0f,
 			1.0f,
 			0.0f));
-		pMissileObject->SetRotationSpeed(2.0f);
-		pMissileObject->SetMovingSpeed(500.0f);
+		pMissileObject->SetRotationSpeed(0.0f);
+		pMissileObject->SetMovingSpeed(100.0f);
 		m_ppGameMissileObjects[i] = pMissileObject;
 	}
 
 	////////////////////////////////////////////
 }
 
+void CScene::FollowMissile()
+{
+	for (int i = 0; i < 1; i++)
+	{
+		for (int j = 0; j < m_nGameObjects; j++) {
+			//ContainmentType containTsype = m_ppGameMissileObjects[i]->m_xmOOBB.Contains(wmPlayerOOBB);
+			if (m_ppGameMissileObjects[i]->m_xmFollwOOBB.Intersects(m_ppGameObjects[j]->m_xmOOBB))
+			{
+				m_fFinishCounter += m_fElapsedTime;
+				XMFLOAT3 AttackDirection = Vector3::Subtract(m_ppGameObjects[j]->GetPosition(), 
+					m_ppGameMissileObjects[i]->GetPosition());
+				float AttackRotatex = Vector3::AngleX(m_ppGameMissileObjects[i]->GetLook(), AttackDirection)/20;
+				float AttackRotatey = Vector3::AngleY(m_ppGameMissileObjects[i]->GetLook(), AttackDirection)/20;
+				float AttackRotatez = Vector3::AngleZ(m_ppGameMissileObjects[i]->GetLook(), AttackDirection)/20;
+				m_ppGameMissileObjects[i]->Rotate(AttackRotatex, AttackRotatey, AttackRotatez);
+				m_ppGameMissileObjects[i]->SetMovingDirection(m_ppGameMissileObjects[i]->GetLook());
+			}
+			if (m_ppGameMissileObjects[i]->m_xmOOBB.Intersects(m_ppGameObjects[j]->m_xmOOBB)|| m_fFinishCounter>7)
+			{
+				m_fFinishCounter = 0;
+				m_bGameOver = true;
+				for (int t = 0; t < m_nGameParticleObjects; t++)
+				{
+			m_ppGameParticleObjects[t]->SetMovingSpeed(20.0f);
+			m_ppGameParticleObjects[t]->SetPosition(m_ppGameMissileObjects[i]->GetPosition());
+				}
+				if (m_ppGameMissileObjects[i]->m_xmOOBB.Intersects(m_ppGameObjects[j]->m_xmOOBB)) {
+					m_ppGameObjects[j]->SetMovingSpeed(0.0f);
+					m_ppGameObjects[j]->SetRotationSpeed(5.0f);
+					m_ppGameObjects[j]->m_bstop = true;
+					
+				}
+				m_bMissileon = false;
+				//m_ppGameMissileObjects[i]->SetPosition(m_pPlayer->GetPosition());
+			}	
+		}
+
+	}
+}
+
+void CScene::FollwPlayer()
+{
+	for (int i = 0; i < m_nGameObjects; i++) {
+		XMFLOAT3 AttackDirection = Vector3::Subtract(m_pPlayer->GetTransformPosition(),m_ppGameObjects[i]->GetTransformPosition());
+	//	float AttackRotatex = Vector3::AngleX(m_ppGameMissileObjects[i]->GetLook(), AttackDirection) ;
+	//	float AttackRotatey = Vector3::AngleY(m_ppGameMissileObjects[i]->GetLook(), AttackDirection) ;
+		//float AttackRotatez = Vector3::AngleZ(m_ppGameMissileObjects[i]->GetLook(), AttackDirection) ;
+		//m_ppGameObjects[i]->Rotate(AttackRotatex, AttackRotatey, AttackRotatez);
+		//XMFLOAT3 RotateTemp=
+		m_ppGameObjects[i]->SetLookAt(AttackDirection, 
+			XMFLOAT3(m_ppGameObjects[i]->GetUp().x,
+				m_ppGameObjects[i]->GetUp().y, 
+				m_ppGameObjects[i]->GetUp().z) );
+
+		//m_ppGameObjects[i]->SetMovingDirection(m_ppGameMissileObjects[i]->GetLook());
+	}
+}
+
+void CScene::MoveEnemy()
+{
+	
+	for (int i = 0; i < m_nGameObjects; i++) {
+		if (!m_ppGameObjects[i]->m_bstop) {
+			if (m_ppGameObjects[i]->m_xmMovingOOBB.Intersects(m_pPlayer->m_xmOOBB)) {
+
+				FollwPlayer();
+				EnemyMissile();
+			}
+			else {
+				m_ppGameObjects[i]->SetMovingDirection(m_ppGameObjects[i]->GetLook());
+				m_ppGameObjects[i]->SetMovingSpeed(120.0f);
+				m_ppGameObjects[i]->SetMovingRange(1.0f);
+			}
+		}
+		else {
+			m_ppGameObjects[i]->SetMovingDirection(XMFLOAT3(0,-1,0));
+			m_ppGameObjects[i]->SetMovingSpeed(110.0f);
+			m_ppGameObjects[i]->Rotate(0, 4, 0);
+		}
+	}
+}
+
+void CScene::EnemyMissile()
+{
+	if (!m_ppGameObjects[0]->m_bstop) {
+		if (m_fEnemymissileCounter[0] < 0.1) {
+			m_ppGameMissileObjects[1]->SetMovingDirection(m_ppGameObjects[0]->GetLook());
+			m_ppGameMissileObjects[1]->SetMovingSpeed(160.0f);
+			m_ppGameMissileObjects[1]->SetPosition(m_ppGameObjects[0]->GetPosition());
+			m_ppGameMissileObjects[1]->m_xmf4x4Transform = m_ppGameObjects[0]->m_xmf4x4World;
+			m_fEnemymissileCounter[0] += m_fElapsedTime;
+		}
+		else if (m_fEnemymissileCounter[0] > 4) 
+		{
+			m_fEnemymissileCounter[0] = 0;
+		}
+		else {
+			m_fEnemymissileCounter[0] += m_fElapsedTime;
+		}
+	}
+	if (!m_ppGameObjects[1]->m_bstop) {
+		if (m_fEnemymissileCounter[1] < 0.1) {
+			m_ppGameMissileObjects[2]->SetMovingDirection(m_ppGameObjects[0]->GetLook());
+			m_ppGameMissileObjects[2]->SetMovingSpeed(160.0f);
+			m_ppGameMissileObjects[2]->SetPosition(m_ppGameObjects[1]->GetPosition());
+			m_ppGameMissileObjects[2]->m_xmf4x4Transform = m_ppGameObjects[0]->m_xmf4x4World;
+			m_fEnemymissileCounter[1] += m_fElapsedTime;
+		}
+		else if (m_fEnemymissileCounter[1] > 5)
+		{
+			m_fEnemymissileCounter[1] = 0;
+		}
+		else {
+			m_fEnemymissileCounter[1] += m_fElapsedTime;
+		}
+	}
+}
 

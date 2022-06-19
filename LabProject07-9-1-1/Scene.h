@@ -13,7 +13,7 @@
 #define SPOT_LIGHT			2
 #define DIRECTIONAL_LIGHT	3
 
-struct LIGHT
+struct LIGHT// 조명과 재질을 위한 구조체
 {
 	XMFLOAT4				m_xmf4Ambient;
 	XMFLOAT4				m_xmf4Diffuse;
@@ -56,19 +56,22 @@ public:
 
 	ID3D12RootSignature* CreateGraphicsRootSignature(ID3D12Device* pd3dDevice);
 	ID3D12RootSignature* GetGraphicsRootSignature() { return(m_pd3dGraphicsRootSignature); }
-
+	
+	
 	bool ProcessInput(UCHAR* pKeysBuffer);
 	void AnimateObjects(float fTimeElapsed);
 	void Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera = NULL);
 
-	void CheckObjectByWallCollision();
+	void CheckObjectByPlayerCollision();
 
 	void ReleaseUploadBuffers();
 
 	void Particles(XMFLOAT3 pos, int nParticles);
 	void Missiles(XMFLOAT3 position, int apachobjects,XMFLOAT3 ObjectLookVector);
-
-
+	void FollowMissile();
+	void FollwPlayer();
+	void MoveEnemy();
+	void EnemyMissile();
 	CPlayer* m_pPlayer = NULL;
 
 public:
@@ -81,11 +84,14 @@ public:
 	CRotatingObject		**m_pprotateGameObject = NULL;
 
 	CMissileObject ** m_ppGameMissileObjects = NULL;
-	int					m_nGameMissileObjects = 4;
+	int					m_nGameMissileObjects = 3;
 	LIGHT* m_pLights = NULL;
 	int							m_nLights = 0;
 
 	XMFLOAT4					m_xmf4GlobalAmbient;
+	//씬의 객체들에 적용되는 재질
+	//MATERIALS* m_pMaterials = NULL;
+
 
 	ID3D12Resource* m_pd3dcbLights = NULL;
 	LIGHTS* m_pcbMappedLights = NULL;
@@ -98,6 +104,8 @@ public:
 	bool				m_bMissileon = false;
 	bool				m_bGameOver = false;
 	float				m_fRestartCounter = 0.0f;
+	float				m_fFinishCounter = 0.0f;
+	float				m_fEnemymissileCounter[2] = {};
 
 	CObjectsShader* m_pShaders = NULL;
 	int m_nShaders = 0;
