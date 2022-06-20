@@ -76,7 +76,7 @@ CGameObject::CGameObject(int nMeshes)
 		for (int i = 0; i < m_nMeshes; i++) m_ppMeshes[i] = NULL;
 	}
 	m_xmOOBB = BoundingOrientedBox(GetPosition(), XMFLOAT3(20.0f, 20.0f, 20.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
-	m_xmMovingOOBB = BoundingOrientedBox(GetPosition(), XMFLOAT3(200.0f, 200.0f, 200.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	m_xmMovingOOBB = BoundingOrientedBox(GetPosition(), XMFLOAT3(500.0f, 500.0f, 500.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 }
 
 CGameObject::~CGameObject()
@@ -1086,7 +1086,7 @@ CMissileObject::CMissileObject()
 	m_xmOOBB = BoundingOrientedBox(GetPosition(), 
 		XMFLOAT3(50.0f, 50.0f, 50.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 	m_xmFollwOOBB = BoundingOrientedBox(GetPosition(),
-		XMFLOAT3(200.0f, 200.0f, 200.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+		XMFLOAT3(400.0f, 400.0f, 400.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 }
 
 CMissileObject::~CMissileObject()

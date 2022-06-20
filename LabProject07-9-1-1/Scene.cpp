@@ -74,6 +74,7 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	m_ppGameObjects = new CGameObject * [m_nGameObjects];
 	m_pParticleModel= CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/TREE.bin");
 	CGameObject* pApacheModel = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/Apache.bin");
+	CGameObject* pHellimodel = CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/Helipad.bin");
 	m_pMissileObject= CGameObject::LoadGeometryFromFile(pd3dDevice, pd3dCommandList, m_pd3dGraphicsRootSignature, "Model/missile.bin");
 	m_nGameParticleObjects =20;
 	//pApacheModel->m_pMesh->Set_xmBoundingBox()
@@ -99,6 +100,18 @@ void CScene::BuildObjects(ID3D12Device* pd3dDevice, ID3D12GraphicsCommandList* p
 	m_ppGameObjects[1] = pApacheObject;
 	Missiles(XMFLOAT3(-100.0f, 0.0f, -200.0f - 50), 0, XMFLOAT3(0.0f,1.0f,0.0f));//0은 아직 정하지 않았다.
 	Particles(XMFLOAT3(-100.0f, 0.0f, -200.0f - 50),20);
+	m_nNGameObjects = 1;
+	m_ppNGameObjects = new CGameObject * [m_nNGameObjects];
+	CApacheObject* cHeliObject = NULL;//아파치 오브젝트
+	cHeliObject = new CApacheObject();
+	cHeliObject->SetChild(pHellimodel, true);
+	cHeliObject->OnInitialize();
+	cHeliObject->SetPosition(1400.0f, 1000.0f, 1400.0f);
+	cHeliObject->SetScale(5.0f, 5.0f, 5.0f);
+	cHeliObject->Rotate(0.0f, 90.0f, 0.0f);
+	m_ppNGameObjects[0] = cHeliObject;
+	//cHeliObject->m_xmOOBB = BoundingOrientedBox(pApacheObject->GetPosition(), XMFLOAT3(20.0f, 20.0f, 20.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	//cHeliObject->SetOOBB();
 	/*m_ppGameMissileObjects = new CMissileObject * [m_nGameMissileObjects];
 	CMissileObject* pMissileObject = NULL;
 	for (int i = 0; i < m_nGameMissileObjects; i++)
@@ -156,6 +169,11 @@ void CScene::ReleaseObjects()
 	{
 		for (int i = 0; i < m_nGameObjects; i++) if (m_ppGameObjects[i]) m_ppGameObjects[i]->Release();
 		delete[] m_ppGameObjects;
+	}
+	if (m_ppNGameObjects)
+	{
+		for (int i = 0; i < m_nNGameObjects; i++) if (m_ppNGameObjects[i]) m_ppNGameObjects[i]->Release();
+		delete[] m_ppNGameObjects;
 	}
 	if (m_ppGameParticleObjects)
 	{
@@ -290,6 +308,13 @@ bool CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 				//m_ppGameMissileObjects[i]->SetLookAt(m_pPlayer->GetLookVector(), m_pPlayer->GetUpVector());
 				m_ppGameMissileObjects[i]->m_xmf4x4Transform = m_pPlayer->m_xmf4x4World;
 			}; break;
+		case 'P':
+			m_pPlayer->SetPosition(XMFLOAT3(240, 470, 3235));
+			m_ppGameObjects[0]->SetPosition(XMFLOAT3(200, 600, 3000));
+			m_ppGameObjects[1]->SetPosition(XMFLOAT3(150, 600, 3500));
+			m_ppGameObjects[0]->SetMovingDirection(m_ppGameObjects[0]->GetLook());
+			m_ppGameObjects[1]->SetMovingDirection(m_ppGameObjects[1]->GetLook());
+			m_helidie = false;
 		default:
 			break;
 		}
@@ -362,6 +387,15 @@ void CScene::Render(ID3D12GraphicsCommandList* pd3dCommandList, CCamera* pCamera
 			m_ppGameObjects[i]->Render(pd3dCommandList, pCamera);
 		}
 	}
+	for (int i = 0; i < m_nNGameObjects; i++)
+	{
+		if (m_ppNGameObjects[i])
+		{
+			m_ppNGameObjects[i]->Animate(m_fElapsedTime, NULL);
+			m_ppNGameObjects[i]->UpdateTransform(NULL);
+			m_ppNGameObjects[i]->Render(pd3dCommandList, pCamera);
+		}
+	}
 	for (int i = 0; i < m_nGameParticleObjects; i++)
 	{
 		if (m_ppGameParticleObjects[i]&& m_bGameOver)
@@ -409,7 +443,7 @@ void CScene::CheckObjectByPlayerCollision()
 			m_ppGameMissileObjects[i]->SetMovingSpeed(0.0f);
 			m_ppGameMissileObjects[i]->SetPosition(XMFLOAT3( - 1000, - 1000, - 1000));
 			//m_pPlayer->Move(0, 2, 0);
-			m_pPlayer->Rotate(0, 5, 0);
+			m_pPlayer->Rotate(40, 30, 0);
 		}
 	}
 }
@@ -485,9 +519,15 @@ void CScene::FollowMissile()
 				m_fFinishCounter += m_fElapsedTime;
 				XMFLOAT3 AttackDirection = Vector3::Subtract(m_ppGameObjects[j]->GetPosition(), 
 					m_ppGameMissileObjects[i]->GetPosition());
-				float AttackRotatex = Vector3::AngleX(m_ppGameMissileObjects[i]->GetLook(), AttackDirection)/20;
-				float AttackRotatey = Vector3::AngleY(m_ppGameMissileObjects[i]->GetLook(), AttackDirection)/20;
-				float AttackRotatez = Vector3::AngleZ(m_ppGameMissileObjects[i]->GetLook(), AttackDirection)/20;
+				float AttackRotatex = Vector3::AngleX(m_ppGameMissileObjects[i]->GetLook(), AttackDirection)/4;
+				float AttackRotatey = Vector3::AngleY(m_ppGameMissileObjects[i]->GetLook(), AttackDirection)/4;
+				float AttackRotatez = Vector3::AngleZ(m_ppGameMissileObjects[i]->GetLook(), AttackDirection)/4;
+				/*if (AttackRotatex >90)
+					AttackRotatex -=90 ;
+				if (AttackRotatey >90)
+					AttackRotatey -= 90;
+				if (AttackRotatez >90)
+					AttackRotatez -= 90;*/
 				m_ppGameMissileObjects[i]->Rotate(AttackRotatex, AttackRotatey, AttackRotatez);
 				m_ppGameMissileObjects[i]->SetMovingDirection(m_ppGameMissileObjects[i]->GetLook());
 			}
@@ -504,7 +544,7 @@ void CScene::FollowMissile()
 					m_ppGameObjects[j]->SetMovingSpeed(0.0f);
 					m_ppGameObjects[j]->SetRotationSpeed(5.0f);
 					m_ppGameObjects[j]->m_bstop = true;
-					
+					m_helidie = true;
 				}
 				m_bMissileon = false;
 				//m_ppGameMissileObjects[i]->SetPosition(m_pPlayer->GetPosition());
@@ -527,6 +567,11 @@ void CScene::FollwPlayer()
 			XMFLOAT3(m_ppGameObjects[i]->GetUp().x,
 				m_ppGameObjects[i]->GetUp().y, 
 				m_ppGameObjects[i]->GetUp().z) );
+		float AttackRotatez = Vector3::AngleX(m_ppGameObjects[i]->GetUp(), XMFLOAT3(1,1,1));
+		if (AttackRotatez > 90) {
+			//m_ppGameObjects[i]->Rotate(0, 0, 0);
+		}
+		m_ppGameObjects[i]->SetScale(3, 3, 3);
 
 		//m_ppGameObjects[i]->SetMovingDirection(m_ppGameMissileObjects[i]->GetLook());
 	}
@@ -548,7 +593,7 @@ void CScene::MoveEnemy()
 				m_ppGameObjects[i]->SetMovingRange(1.0f);
 			}
 		}
-		else {
+		else if(m_helidie) {
 			m_ppGameObjects[i]->SetMovingDirection(XMFLOAT3(0,-1,0));
 			m_ppGameObjects[i]->SetMovingSpeed(110.0f);
 			m_ppGameObjects[i]->Rotate(0, 4, 0);

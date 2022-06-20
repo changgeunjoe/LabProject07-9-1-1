@@ -79,6 +79,8 @@ public:
 
 	CGameObject** m_ppGameObjects = NULL;
 	int							m_nGameObjects = 0;
+	CGameObject** m_ppNGameObjects = NULL;
+	int							m_nNGameObjects = 0;
 	CParticleObject  ** m_ppGameParticleObjects = NULL;
 	int							m_nGameParticleObjects = 0;
 	CRotatingObject		**m_pprotateGameObject = NULL;
@@ -103,6 +105,7 @@ public:
 	
 	bool				m_bMissileon = false;
 	bool				m_bGameOver = false;
+	bool				m_helidie = false;
 	float				m_fRestartCounter = 0.0f;
 	float				m_fFinishCounter = 0.0f;
 	float				m_fEnemymissileCounter[2] = {};
